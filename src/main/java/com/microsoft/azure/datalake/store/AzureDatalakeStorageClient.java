@@ -25,7 +25,7 @@ public class AzureDatalakeStorageClient {
         return null;
     }
 
-    public ADLDirectoryInfo getDirectoryInfo(String directoryname) {
+    public ADLDirectoryInfo getDirectoryInfo(String directoryName) {
         return null;
     }
 
@@ -39,7 +39,7 @@ public class AzureDatalakeStorageClient {
      *
      * @param callback
      */
-    public void RegisterCallback(ICallback callback) { }
+    public void registerCallback(ICallback callback) { }
 
 
     /**
@@ -48,11 +48,11 @@ public class AzureDatalakeStorageClient {
      *
      * @param token
      */
-    public void UpdateToken(AzureADToken token) {
+    public void updateToken(AzureADToken token) {
 
     }
 
-    public void UpdateToken(String accessToken) {
+    public void updateToken(String accessToken) {
 
     }
 

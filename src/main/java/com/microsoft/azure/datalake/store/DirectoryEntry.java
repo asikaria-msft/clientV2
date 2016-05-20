@@ -3,12 +3,12 @@ package com.microsoft.azure.datalake.store;
 import java.time.LocalDateTime;
 
 public class DirectoryEntry {
-    public String Name;
-    public String Group;
-    public String User;
-    public LocalDateTime LastAccessTime;
-    public LocalDateTime LastModifiedTime;
-    public DirectoryEntryType Type;
-    public String Permission;
+    public String name;
+    public String group;
+    public String user;
+    public LocalDateTime lastAccessTime;
+    public LocalDateTime lastModifiedTime;
+    public DirectoryEntryType type;
+    public String permission;
 }
 

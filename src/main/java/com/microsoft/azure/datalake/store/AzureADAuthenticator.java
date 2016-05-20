@@ -5,27 +5,27 @@ package com.microsoft.azure.datalake.store;
  */
 public class AzureADAuthenticator {
 
-    public static AzureADToken GetTokenUsingClientCreds(String authEndpoint, String clientId, String ClientSecret) {
+    public static AzureADToken getTokenUsingClientCreds(String authEndpoint, String clientId, String clientSecret) {
         return null;
     }
 
-    public static AzureADToken GetTokenUsingClientCert(String authEndpoint, String clientId, java.security.cert.X509Certificate cert){
+    public static AzureADToken getTokenUsingClientCert(String authEndpoint, String clientId, java.security.cert.X509Certificate cert){
         return null;
     }
 
-    public static AzureADToken GetTokenUsingRefreshToken(String authEndpoint, String refreshToken){
+    public static AzureADToken getTokenUsingRefreshToken(String authEndpoint, String refreshToken){
         return null;
     }
 
-    public static AzureADToken GetTokenUsingUserCreds(String authEndpoint, String userId, String password){
+    public static AzureADToken getTokenUsingUserCreds(String authEndpoint, String userId, String password){
         return null;
     }
 
-    public static AzureADToken GetTokenUsingInteractiveLogin(){
+    public static AzureADToken getTokenUsingInteractiveLogin(){
         return null;
     }
 
-    public static AzureADToken GetTokenUsingAuthCode(){
+    public static AzureADToken getTokenUsingAuthCode(){
         return null;
     }
 }

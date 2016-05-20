@@ -11,7 +11,7 @@ public class MyApp {
         String clientID = "033E5080-A101-4932-8818-8EC130F43847";
         String clientCreds = "AleWx7yyGjd9sbS6Fx09mZ=";
         String tokenEndpoint = "https://login.microsoftonline.com/DC24AE9F-CE88-4999-88C5-830D5DA6A873/oauth2/token";
-        AzureADToken token =  AzureADAuthenticator.GetTokenUsingClientCreds(tokenEndpoint, clientID, clientCreds);
+        AzureADToken token =  AzureADAuthenticator.getTokenUsingClientCreds(tokenEndpoint, clientID, clientCreds);
 
         // createClient Client
         String adlsAccount = "contoso.azuredatalakestore.net";

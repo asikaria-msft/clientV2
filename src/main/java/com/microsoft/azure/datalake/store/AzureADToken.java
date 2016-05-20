@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 
 
 public class AzureADToken {
-    public String AccessToken;
-    public String RefreshToken;
+    public String accessToken;
+    public String refreshToken;
     @SuppressWarnings("Since15")
     public LocalDateTime expiry;
 }
