@@ -1,29 +1,31 @@
-package com.microsoft.azure.dalatake.store;
+package com.microsoft.azure.datalake.store;
 
 
 public class AzureDatalakeStorageClient {
 
-    public static AzureDatalakeStorageClient Create(String accountFQDN, AzureADToken token) {
+
+    private String accountFQDN;
+    private String accessToken;
+
+    private AzureDatalakeStorageClient(String accountFQDN, String accessToken) {
+        this.accountFQDN = accountFQDN;
+        this.accessToken = accessToken;
+        utils = new Utils(this);
+    }
+
+    public static AzureDatalakeStorageClient createClient(String accountFQDN, AzureADToken token) {
         return null;
     }
 
-    public static AzureDatalakeStorageClient Create(String accountFQDN, String accessToken) {
+    public static AzureDatalakeStorageClient createClient(String accountFQDN, String accessToken) {
         return null;
     }
 
-    public ADLFile GetFileReference(String filename) {
+    public ADLFileInfo getFileInfo(String filename) {
         return null;
     }
 
-    public ADLFile GetFileReferenceFromServer(String filename) {
-        return null;
-    }
-
-    public ADLDirectory GetDirectoryReference(String directoryname) {
-        return null;
-    }
-
-    public ADLDirectory GetDirectoryReferenceFromServer(String directoryname) {
+    public ADLDirectoryInfo getDirectoryInfo(String directoryname) {
         return null;
     }
 
@@ -56,18 +58,11 @@ public class AzureDatalakeStorageClient {
 
 
     /*
-       Static Methods for convenience
+       Utils class holds the convenience methods
     */
 
-    public static boolean CheckDirectoryExists(String fileName) {
-        return true;
-    }
+    public final Utils utils;
 
-    public static boolean CreateDirectory(String directoryName) {
-        return true;
-    }
 
-    public static boolean CheckFileExists(String fileName) {
-        return true;
-    }
+
 }

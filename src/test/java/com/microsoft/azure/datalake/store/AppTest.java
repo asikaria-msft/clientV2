@@ -1,4 +1,4 @@
-package com.microsoft.azure.dalatake.store;
+package com.microsoft.azure.datalake.store;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -11,7 +11,7 @@ public class AppTest
     extends TestCase
 {
     /**
-     * Create the test case
+     * createClient the test case
      *
      * @param testName name of the test case
      */

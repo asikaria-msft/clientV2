@@ -1,4 +1,4 @@
-package com.microsoft.azure.dalatake.store;
+package com.microsoft.azure.datalake.store;
 
 /**
  * provides convenience methods over AAD client

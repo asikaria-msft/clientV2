@@ -1,4 +1,4 @@
-package com.microsoft.azure.dalatake.store;
+package com.microsoft.azure.datalake.store;
 
 import java.io.IOException;
 import java.io.OutputStream;
