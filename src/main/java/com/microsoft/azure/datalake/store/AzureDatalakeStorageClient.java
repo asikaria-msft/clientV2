@@ -1,66 +1,79 @@
 package com.microsoft.azure.datalake.store;
 
 
-public class AzureDatalakeStorageClient {
+import java.net.URI;
 
 
-    private String accountFQDN;
+public class AzureDataLakeStorageClient {
+
+
+    private final String accountFQDN;
     private String accessToken;
+    private String userAgentSuffix;
 
-    private AzureDatalakeStorageClient(String accountFQDN, String accessToken) {
+
+    private AzureDataLakeStorageClient(String accountFQDN, String accessToken) {
         this.accountFQDN = accountFQDN;
-        this.accessToken = accessToken;
+        this.accessToken = "Bearer " + accessToken;
         utils = new Utils(this);
     }
 
-    public static AzureDatalakeStorageClient createClient(String accountFQDN, AzureADToken token) {
-        return null;
+    public static AzureDataLakeStorageClient createClient(String accountFQDN, AzureADToken token) {
+        return new AzureDataLakeStorageClient(accountFQDN, token.accessToken);
     }
 
-    public static AzureDatalakeStorageClient createClient(String accountFQDN, String accessToken) {
-        return null;
+    public static AzureDataLakeStorageClient createClient(String accountFQDN, String accessToken) {
+        return new AzureDataLakeStorageClient(accountFQDN, accessToken);
     }
 
     public ADLFileInfo getFileInfo(String filename) {
-        return null;
+        return new ADLFileInfo(this, filename);
+    }
+    public ADLFileInfo getFileInfo(URI fileUri) {
+        if (!fileUri.getAuthority().equals(accountFQDN))
+            throw new IllegalArgumentException("account name in URI doesnt match the account of the client");
+        return new ADLFileInfo(this, fileUri.getPath());
     }
 
     public ADLDirectoryInfo getDirectoryInfo(String directoryName) {
-        return null;
+        return new ADLDirectoryInfo(this, directoryName);
     }
 
     /**
-     * Registers a callback to be called at the end of every server call in any method from this client.
-     * This allows interested clients to track things like latency, request tracing ID, etc.
-     * Keeping the callback separate allows the main interface to be clean, while enabling
-     * the few use cases where customer might be interested in gathering stats for success cases.
-     *
-     * This is also a potential place for custom logging from customers.
-     *
-     * @param callback
-     */
-    public void registerCallback(ICallback callback) { }
-
-
-    /**
-     * Tokens expire in 1 hour. This call allows user to update token on existing clients.
+     * AAD Tokens expire in 1 hour. This call allows user to update token on existing clients.
      * This is useful if the client is expected to be used over long time.
      *
-     * @param token
+     * @param token The OAuth2 Token string
      */
     public void updateToken(AzureADToken token) {
-
+        this.accessToken = "Bearer " + token.accessToken;
     }
 
     public void updateToken(String accessToken) {
+        this.accessToken = "Bearer " + accessToken;
+    }
 
+    public String getStorageAccountName() {
+        return accountFQDN;
+    }
+
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    // All the calls made from this client will use this user agent suffix
+    public String getUserAgentSuffix() {
+        return userAgentSuffix;
+    }
+
+    public void setUserAgentSuffix(String userAgentSuffix) {
+        this.userAgentSuffix = userAgentSuffix;
     }
 
 
     /*
        Utils class holds the convenience methods
     */
-
     public final Utils utils;
 
 

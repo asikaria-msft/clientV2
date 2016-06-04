@@ -1,11 +1,10 @@
 package com.microsoft.azure.datalake.store;
 
-import java.time.LocalDateTime;
+import java.util.Calendar;
 
 
 public class AzureADToken {
     public String accessToken;
     public String refreshToken;
-    @SuppressWarnings("Since15")
-    public LocalDateTime expiry;
+    public Calendar expiry;
 }

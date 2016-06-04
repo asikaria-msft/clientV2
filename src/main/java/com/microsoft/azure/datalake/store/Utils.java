@@ -5,9 +5,9 @@ import java.net.URI;
 
 public class Utils {
 
-    private AzureDatalakeStorageClient client;
+    private AzureDataLakeStorageClient client;
 
-    Utils(AzureDatalakeStorageClient client) {
+    Utils(AzureDataLakeStorageClient client) {
         this.client = client;
     }
 
@@ -15,11 +15,11 @@ public class Utils {
         return true;
     }
 
-    public boolean createDirectory(String directoryName) {
+    public boolean checkFileExists(String fileName) {
         return true;
     }
 
-    public boolean checkFileExists(String fileName) {
+    public boolean createDirectory(String directoryName) {
         return true;
     }
 

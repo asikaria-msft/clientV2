@@ -4,17 +4,45 @@
 
   <groupId>com.microsoft.azure.dalatake.store</groupId>
   <artifactId>client</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>2.0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
-
-  <name>client</name>
-  <url>http://maven.apache.org</url>
+  <name>Azure Data Lake Java client SDK</name>
+  <url>https://azure.microsoft.com/en-us/services/data-lake-store</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+              <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
   <dependencies>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>2.7.4</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.7.4</version>
+      <!-- Javadocs: http://fasterxml.github.io/jackson-databind/javadoc/2.7/index.html -->
+    </dependency>
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>

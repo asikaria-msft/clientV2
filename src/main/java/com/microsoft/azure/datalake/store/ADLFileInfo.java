@@ -1,56 +1,77 @@
 package com.microsoft.azure.datalake.store;
 
-import java.time.LocalDateTime;
+import com.microsoft.azure.datalake.store.protocol.Core;
+import com.microsoft.azure.datalake.store.protocol.OperationResponse;
+import com.microsoft.azure.datalake.store.protocol.RequestOptions;
+import com.microsoft.azure.datalake.store.retrypolicies.DefaultRetryPolicy;
+
 import java.util.List;
 
 
 public class ADLFileInfo {
 
-    // no constructor - use factory method in AzureDatalakeStorageClient
-    private ADLFileInfo() { }
+    private final AzureDataLakeStorageClient client;
+    private String filename = null;  // cannot be marked final - rename can change it
 
-    public ADLFileOutputStream create(boolean overwriteIfExists) {
-        return null;
+    // package-private constructor - use factory method in AzureDataLakeStorageClient
+    ADLFileInfo(AzureDataLakeStorageClient client, String filename) {
+        this.client = client;
+        this.filename = filename;
+    }
+
+    public ADLFileOutputStream createFromStream(boolean overwriteIfExists) {
+        return new ADLFileOutputStream(filename, client, true, overwriteIfExists);
     }
 
     public ADLFileInputStream getReadStream() {
-            return null;
+        return new ADLFileInputStream(filename, client);
     }
 
     public ADLFileOutputStream getAppendStream() {
-        return null;
+        return new ADLFileOutputStream(filename, client, false, false);
     }
 
-
-
-
-
-    public boolean concatenateFiles(List<String> fileList){
+    public boolean concatenateFiles(List<String> fileList, boolean deleteSourceDirectory) throws ADLException {
+        RequestOptions opts = new RequestOptions();
+        opts.retryPolicy = new DefaultRetryPolicy();
+        OperationResponse resp = new OperationResponse();
+        Core.concat(filename, fileList, deleteSourceDirectory, client, opts, resp);
+        if (!resp.successful) {
+            throw Core.getExceptionFromResp(resp, "Error concatenating files into " + filename);
+        }
         return true;
     }
 
-    public boolean rename(String newName) {
-        return true;
+    public void rename(String newName) throws ADLException {
+        RequestOptions opts = new RequestOptions();
+        opts.retryPolicy = new DefaultRetryPolicy();
+        OperationResponse resp = new OperationResponse();
+        Core.rename(filename, newName, client, opts, resp);
+        if (!resp.successful) {
+            throw Core.getExceptionFromResp(resp, "Error renaming file " + filename);
+        }
+        filename = newName;
     }
 
-    public boolean updateInfoFromServer() {
-        return true;
+    public DirectoryEntry getDirectoryEntry() throws ADLException {
+        RequestOptions opts = new RequestOptions();
+        opts.retryPolicy = new DefaultRetryPolicy();
+        OperationResponse resp = new OperationResponse();
+        DirectoryEntry dirEnt  = Core.getFileStatus(filename, client, opts, resp);
+        if (!resp.successful) {
+            throw Core.getExceptionFromResp(resp, "Error getting info for file " + filename);
+        }
+        return dirEnt;
     }
 
-    public long getLength() {
-        return 0;
-    }
-
-    public String getName() {
-        return null;
-    }
-
-    public LocalDateTime getLastAccessTime() {
-        return null;
-    }
-
-    public LocalDateTime getLastModificationTime() {
-        return null;
+    public void setOwner(String owner, String group) throws ADLException {
+        RequestOptions opts = new RequestOptions();
+        opts.retryPolicy = new DefaultRetryPolicy();
+        OperationResponse resp = new OperationResponse();
+        Core.setOwner(filename, owner, group, client, opts, resp);
+        if (!resp.successful) {
+            throw Core.getExceptionFromResp(resp, "Error setting owner for file " + filename);
+        }
     }
 
     public boolean canRead() {
@@ -81,23 +102,5 @@ public class ADLFileInfo {
         return true;
     }
 
-    public String getOwningUser() {
-        return null;
-    }
 
-    public boolean setOwningUser(String owner) {
-        return true;
-    }
-
-    public String getOwningGroup() {
-        return null;
-    }
-
-    public boolean setOwningGroup(String group) {
-        return true;
-    }
-
-    public boolean setOwner(String owner, String group) {
-        return true;
-    }
 }

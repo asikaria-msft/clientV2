@@ -1,29 +1,25 @@
-package com.microsoft.azure.datalake.store;
+package com.microsoft.azure.datalake.store.protocol;
 
+import java.io.InputStream;
 
-import java.io.IOException;
-
-public class ADLException extends IOException {
-
+public class OperationResponse {
+    public boolean successful = false;
     public int httpResponseCode;
     public String httpResponseMessage;
+
+    public InputStream responseStream = null;
     public String requestId = null;
 
     public int numRetries;
     public long lastCallLatency = 0;
     public long responseContentLength = 0;
 
-    //TODO: Need to pupulate these in HttpTransport
+    // These come back on non-successful http responses
     public String remoteExceptionName = null;
     public String remoteExceptionMessage = null;
     public String remoteExceptionJavaClassName = null;
 
-    public ADLException(String message, Throwable initCause) {
-        super(message, initCause);
-
-
-    }
-
-
-
+    public Exception ex = null;
+    public String message; // for errors generated internally by the SDK
 }
+
