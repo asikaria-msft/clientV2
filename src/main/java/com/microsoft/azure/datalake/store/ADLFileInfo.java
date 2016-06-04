@@ -3,7 +3,7 @@ package com.microsoft.azure.datalake.store;
 import com.microsoft.azure.datalake.store.protocol.Core;
 import com.microsoft.azure.datalake.store.protocol.OperationResponse;
 import com.microsoft.azure.datalake.store.protocol.RequestOptions;
-import com.microsoft.azure.datalake.store.retrypolicies.DefaultRetryPolicy;
+import com.microsoft.azure.datalake.store.retrypolicies.ExponentialOnThrottlePolicy;
 
 import java.util.List;
 
@@ -33,7 +33,7 @@ public class ADLFileInfo {
 
     public boolean concatenateFiles(List<String> fileList, boolean deleteSourceDirectory) throws ADLException {
         RequestOptions opts = new RequestOptions();
-        opts.retryPolicy = new DefaultRetryPolicy();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
         Core.concat(filename, fileList, deleteSourceDirectory, client, opts, resp);
         if (!resp.successful) {
@@ -44,7 +44,7 @@ public class ADLFileInfo {
 
     public void rename(String newName) throws ADLException {
         RequestOptions opts = new RequestOptions();
-        opts.retryPolicy = new DefaultRetryPolicy();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
         Core.rename(filename, newName, client, opts, resp);
         if (!resp.successful) {
@@ -55,7 +55,7 @@ public class ADLFileInfo {
 
     public DirectoryEntry getDirectoryEntry() throws ADLException {
         RequestOptions opts = new RequestOptions();
-        opts.retryPolicy = new DefaultRetryPolicy();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
         DirectoryEntry dirEnt  = Core.getFileStatus(filename, client, opts, resp);
         if (!resp.successful) {
@@ -66,7 +66,7 @@ public class ADLFileInfo {
 
     public void setOwner(String owner, String group) throws ADLException {
         RequestOptions opts = new RequestOptions();
-        opts.retryPolicy = new DefaultRetryPolicy();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
         Core.setOwner(filename, owner, group, client, opts, resp);
         if (!resp.successful) {

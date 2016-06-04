@@ -5,10 +5,10 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 public class ADLAcl {
-    private String ownerAccess = "---";
-    private String groupAccess = "---";
-    private String otherAccess = "---";
-    private String mask = "---";
+    private String ownerAccess = null;
+    private String groupAccess = null;
+    private String otherAccess = null;
+    private String mask = null;
     private Map<String, String> namedUserAcl = null;
     private Map<String, String> namedGroupAcl= null;
     private ADLAcl defaultAcl = null;

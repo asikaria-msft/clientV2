@@ -1,6 +1,6 @@
 package com.microsoft.azure.datalake.store.retrypolicies;
 
-public class DefaultRetryPolicy implements RetryPolicy {
+public class ExponentialOnThrottlePolicy implements RetryPolicy {
 
     private int retryCount = 0;
     private int maxRetries = 2;

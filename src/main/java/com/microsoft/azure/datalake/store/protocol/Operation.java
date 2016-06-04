@@ -1,7 +1,7 @@
 package com.microsoft.azure.datalake.store.protocol;
 
 
-public enum Operation {
+enum Operation {
     OPEN               ("OPEN",               "GET",    C.requiresBodyFalse, C.returnsBodyTrue,  C.isExtFalse),
     GETFILESTATUS      ("GETFILESTATUS",      "GET",    C.requiresBodyFalse, C.returnsBodyTrue,  C.isExtFalse),
     MSGETFILESTATUS    ("MSGETFILESTATUS",    "GET",    C.requiresBodyFalse, C.returnsBodyTrue,  C.isExtFalse),

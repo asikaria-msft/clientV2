@@ -3,7 +3,7 @@ package com.microsoft.azure.datalake.store;
 import com.microsoft.azure.datalake.store.protocol.Core;
 import com.microsoft.azure.datalake.store.protocol.OperationResponse;
 import com.microsoft.azure.datalake.store.protocol.RequestOptions;
-import com.microsoft.azure.datalake.store.retrypolicies.DefaultRetryPolicy;
+import com.microsoft.azure.datalake.store.retrypolicies.ExponentialOnThrottlePolicy;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,7 +42,7 @@ public class ADLFileInputStream extends InputStream {
 
         // make server call to get more data
         RequestOptions opts = new RequestOptions();
-        opts.retryPolicy = new DefaultRetryPolicy();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
         InputStream str = Core.open(filename, fCursor, len, client, opts, resp);
         if (!resp.successful) throw Core.getExceptionFromResp(resp, "Error reading from file " + filename);

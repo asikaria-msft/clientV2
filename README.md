@@ -1,15 +1,11 @@
-# clientV2
-client v2
+# ClientV2
 
-TODO:
+TODO
 1. Add Logging
-2. Functional tests
-3. Perf tests
-4. What do we need for HWx certification?
-5.
+2. ACLs
+3. Finish utility methods
+4. Functional tests
+5. Perf tests
 
 
 
-Vishwajeet:
-1. Is there anywhere I can get list of params and headers per request?
-2. what header carries ms-request-id?

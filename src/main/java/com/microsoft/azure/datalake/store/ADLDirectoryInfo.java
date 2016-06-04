@@ -3,7 +3,7 @@ package com.microsoft.azure.datalake.store;
 import com.microsoft.azure.datalake.store.protocol.Core;
 import com.microsoft.azure.datalake.store.protocol.OperationResponse;
 import com.microsoft.azure.datalake.store.protocol.RequestOptions;
-import com.microsoft.azure.datalake.store.retrypolicies.DefaultRetryPolicy;
+import com.microsoft.azure.datalake.store.retrypolicies.ExponentialOnThrottlePolicy;
 
 import java.util.List;
 
@@ -37,7 +37,7 @@ public class ADLDirectoryInfo {
 
     public List<DirectoryEntry> enumerate(int maxEntriesToRetrieve, String startAfter, String endBefore) throws ADLException {
         RequestOptions opts = new RequestOptions();
-        opts.retryPolicy = new DefaultRetryPolicy();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
         List<DirectoryEntry> dirEnt  = Core.listStatus(dirname, startAfter, endBefore, maxEntriesToRetrieve, client, opts, resp);
         if (!resp.successful) {
@@ -48,7 +48,7 @@ public class ADLDirectoryInfo {
 
     public void create() throws ADLException  {
         RequestOptions opts = new RequestOptions();
-        opts.retryPolicy = new DefaultRetryPolicy();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
         Core.mkdirs(dirname, client, opts, resp);
         if (!resp.successful) {
@@ -58,7 +58,7 @@ public class ADLDirectoryInfo {
 
     public boolean rename(String newName) throws ADLException {
         RequestOptions opts = new RequestOptions();
-        opts.retryPolicy = new DefaultRetryPolicy();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
         Core.rename(dirname, newName, client, opts, resp);
         if (!resp.successful) {
@@ -70,7 +70,7 @@ public class ADLDirectoryInfo {
 
     public DirectoryEntry getDirectoryEntry() throws ADLException {
         RequestOptions opts = new RequestOptions();
-        opts.retryPolicy = new DefaultRetryPolicy();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
         DirectoryEntry dirEnt  = Core.getFileStatus(dirname, client, opts, resp);
         if (!resp.successful) {
@@ -81,7 +81,7 @@ public class ADLDirectoryInfo {
 
     public void setOwner(String owner, String group) throws ADLException {
         RequestOptions opts = new RequestOptions();
-        opts.retryPolicy = new DefaultRetryPolicy();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
         Core.setOwner(dirname, owner, group, client, opts, resp);
         if (!resp.successful) {
