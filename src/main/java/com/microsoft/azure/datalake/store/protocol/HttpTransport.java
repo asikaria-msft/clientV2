@@ -38,15 +38,23 @@ class HttpTransport {
         int retryCount = 0;
         do {
             long start = System.nanoTime();
-            makeSingleCall(client, op, path, queryParams, requestBody, offsetWithinContentsArray, length, opts, resp);  // THE REAL CALL
+            makeSingleCall(client, op, path, queryParams, requestBody, offsetWithinContentsArray, length, opts, resp);
             resp.lastCallLatency = System.nanoTime() - start;
             resp.numRetries = retryCount;
-            if (    (resp.ex == null)
-                 && (resp.httpResponseCode >=100 && resp.httpResponseCode < 300) ) {   // 1xx and 2xx return codes
+            if (       (resp.ex == null)
+                    && (resp.httpResponseCode >=100 && resp.httpResponseCode < 300) ) {   // 1xx and 2xx return codes
                 resp.successful = true;
+                LatencyTracker.addLatency(opts.requestid, retryCount, resp.lastCallLatency, op.name, length + resp.responseContentLength);
                 return;
             } else {
                 resp.successful = false;
+                String error;
+                if (resp.ex!=null) {
+                    error = resp.ex.getClass().getName();
+                } else {
+                    error = "HTTP" + resp.httpResponseCode;
+                }
+                LatencyTracker.addError(opts.requestid, retryCount, error, op.name, length);
                 retryCount++;
             }
         } while (opts.retryPolicy.shouldRetry(resp.httpResponseCode, resp.ex));
@@ -120,6 +128,8 @@ class HttpTransport {
             // TODO: It is wasteful to recompute User-Agent on every call. Move it to adlclient and reuse same string from there
             conn.setRequestProperty("User-Agent", getUserAgent(client.getUserAgentSuffix()));
             conn.setRequestProperty("x-ms-client-request-id", opts.requestid);
+            String latencyHeader = LatencyTracker.get();
+            if (latencyHeader!=null) conn.setRequestProperty("x-ms-adl-ClientLatency", latencyHeader);
             conn.setConnectTimeout(opts.timeout);
             conn.setUseCaches(false);
 
