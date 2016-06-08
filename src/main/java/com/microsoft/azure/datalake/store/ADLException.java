@@ -13,7 +13,6 @@ public class ADLException extends IOException {
     public long lastCallLatency = 0;
     public long responseContentLength = 0;
 
-    //TODO: Need to pupulate these in HttpTransport
     public String remoteExceptionName = null;
     public String remoteExceptionMessage = null;
     public String remoteExceptionJavaClassName = null;

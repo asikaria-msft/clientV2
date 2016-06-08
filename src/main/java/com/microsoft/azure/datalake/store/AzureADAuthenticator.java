@@ -9,13 +9,30 @@ import java.util.Calendar;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 
 /**
- * provides convenience methods over AAD client
+ * This class provides convenience methods to obtain AAD tokens.
+ *
  */
 public class AzureADAuthenticator {
 
+    /**
+     * gets AAD tokens using the user ID and password of a service principal.
+     * <P>
+     * AAD allows users to set up a web app as a service principal. Users can optionally obtain service principal
+     * keys from AAD. This method gets a token using a service principal's client ID and keys. In addition, it
+     * needs the token endpoint associated with the user's directory.
+     * </P>
+     *
+     *
+     * @param authEndpoint the OAuth 2.0 token endpoint associated with the user's directory
+     * @param clientId the client ID (GUID) of the client web app
+     * @param clientSecret the secret key of the client web app
+     * @return {@link AzureADToken} obtained using the creds
+     * @throws IOException
+     */
     public static AzureADToken getTokenUsingClientCreds(String authEndpoint, String clientId, String clientSecret)
             throws IOException
     {
@@ -53,7 +70,7 @@ public class AzureADAuthenticator {
     }
 
     public static AzureADToken getTokenUsingClientCert(String authEndpoint, String clientId, java.security.cert.X509Certificate cert){
-        return null;
+        throw new NotImplementedException();
     }
 
     public static AzureADToken getTokenUsingRefreshToken(String authEndpoint, String refreshToken){
@@ -61,14 +78,6 @@ public class AzureADAuthenticator {
     }
 
     public static AzureADToken getTokenUsingUserCreds(String authEndpoint, String userId, String password){
-        return null;
-    }
-
-    public static AzureADToken getTokenUsingInteractiveLogin(){
-        return null;
-    }
-
-    public static AzureADToken getTokenUsingAuthCode(){
         return null;
     }
 }

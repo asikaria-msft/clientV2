@@ -3,19 +3,28 @@ package com.microsoft.azure.datalake.store.protocol;
 import java.util.concurrent.ArrayBlockingQueue;
 
 
-class LatencyTracker {
+/**
+ * LatencyRacker keeps track of client-preceived request latencies, to be reported on the next REST request.
+ * Every request adds its result (success/failure and latency) to LatencyTracker. When a request is made,
+ * the SDK checks LatencyTracker to see if there are any latency stats to be reported. If so, the stats are added
+ * as an HTTP header on the next request.
+ * <P>
+ * To disable this reporting, user can call {@link #disable()}.
+ * </P>
+ */
+public class LatencyTracker {
     /*
      Schema:
      Single entry, comma separated:
       1. Client Request ID
       2. Retry Number
-      3. latency in milliseconds (if integer)
+      3. latency in milliseconds
       4. error code (if request failed)
       5. Operation
       6. Request+response body Size (if available, zero otherwise)
 
      Multiple entries can be on a single request. Entries will be separated by semicolons
-     Limit max entires on a single request to three, to limit increase in HTTP request size.
+     Limit max entries on a single request to three, to limit increase in HTTP request size.
     */
 
     private static final ArrayBlockingQueue<String> Q = new ArrayBlockingQueue<String>(256);
@@ -24,6 +33,13 @@ class LatencyTracker {
 
     private LatencyTracker() {} // Prevent instantiation - static methods only
 
+    /**
+     * Disable reporting of client-perceived latency stats to the server.
+     * <P>
+     * This is a static method that disables all future reporting from this JVM instance.
+     * </P>
+     *
+     */
     public static synchronized void disable() {
         // using synchronized causes update to "disabled" to be published, so other threads will see updated value.
         // Deadlocks:
@@ -39,6 +55,7 @@ class LatencyTracker {
 
     static void addLatency(String clientRequestId, int retryNum, long latency, String operation, long size) {
         if (disabled) return;
+        latency = latency / 1000000;  // convert nanoseconds to milliseconds
         String line = String.format("%s,%s,%s,,%s,%s", clientRequestId, Integer.toString(retryNum), Long.toString(latency), operation, Long.toString(size));
         Q.offer(line); // non-blocking append. If queue is full then silently discard
     }

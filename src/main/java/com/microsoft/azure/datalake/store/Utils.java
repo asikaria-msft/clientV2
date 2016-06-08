@@ -55,22 +55,5 @@ public class Utils {
         return true;
     }
 
-    /**
-     * Atomically creates a file with specified contents from byte buffer
-     * The request either succeeds (in which case the file is created and
-     * all the content is in the file), or fails (in which case the file is not
-     * created).
-     *
-     * @param contents
-     *          the byte buffer to append. Max buffer size can be 4MB.
-     * @param overwriteIfExists
-     *          if true, then the file overwrites any existing file. If false,
-     *          then the request fails if a file by the same name already exists.
-     * @return returns true on success
-     */
-    @Deprecated
-    public boolean createFileWithContents(String fileName, byte[] contents, boolean overwriteIfExists) {
-        return true;
-    }
 
 }

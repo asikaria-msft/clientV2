@@ -1,14 +1,12 @@
 package com.microsoft.azure.datalake.store;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  * Unit test for simple App.
  */
 public class AppTest 
-    extends TestCase
 {
     /**
      * createClient the test case
@@ -17,20 +15,14 @@ public class AppTest
      */
     public AppTest( String testName )
     {
-        super( testName );
+
     }
 
-    /**
-     * @return the suite of tests being tested
-     */
-    public static Test suite()
-    {
-        return new TestSuite( AppTest.class );
-    }
 
     /**
      * Rigorous Test :-)
      */
+    @Test
     public void testApp()
     {
         assertTrue( true );

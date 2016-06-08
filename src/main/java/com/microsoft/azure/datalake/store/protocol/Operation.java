@@ -1,6 +1,9 @@
 package com.microsoft.azure.datalake.store.protocol;
 
 
+/**
+ * The WebHDFs methods, and their associated properties (e.g., what HTTP method to use, etc.)
+ */
 enum Operation {
     OPEN               ("OPEN",               "GET",    C.requiresBodyFalse, C.returnsBodyTrue,  C.isExtFalse),
     GETFILESTATUS      ("GETFILESTATUS",      "GET",    C.requiresBodyFalse, C.returnsBodyTrue,  C.isExtFalse),

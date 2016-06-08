@@ -68,6 +68,16 @@ public class ADLDirectoryInfo {
         return true;
     }
 
+    public void delete(boolean recursive) throws ADLException {
+        RequestOptions opts = new RequestOptions();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
+        OperationResponse resp = new OperationResponse();
+        Core.delete(dirname, recursive, client, opts, resp);
+        if (!resp.successful) {
+            throw Core.getExceptionFromResp(resp, "Error deleting directory " + dirname);
+        }
+    }
+
     public DirectoryEntry getDirectoryEntry() throws ADLException {
         RequestOptions opts = new RequestOptions();
         opts.retryPolicy = new ExponentialOnThrottlePolicy();

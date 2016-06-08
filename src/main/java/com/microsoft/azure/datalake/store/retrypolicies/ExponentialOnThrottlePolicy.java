@@ -1,5 +1,14 @@
 package com.microsoft.azure.datalake.store.retrypolicies;
 
+/**
+ * implements different retry decisions based on the error.
+ *
+ * <UL>
+ *     <LI>For nonretryable errors (3xx, most 4xx, and some 5xx return codes), do no retry.</LI>
+ *     <LI>For throttling error, do a retry with exponential backoff</LI>
+ *     <LI>for all other errors, do a retry with linear backoff</LI>
+ * </UL>
+ */
 public class ExponentialOnThrottlePolicy implements RetryPolicy {
 
     private int retryCount = 0;
