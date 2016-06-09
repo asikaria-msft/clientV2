@@ -8,6 +8,13 @@ import com.microsoft.azure.datalake.store.retrypolicies.ExponentialOnThrottlePol
 import java.util.List;
 
 
+/**
+ * A local Java object that represents a file on the server.
+ * <P>
+ * Methods on this class enable manipulation of the file's
+ * contents and attributes.
+ * </P>
+ */
 public class ADLFileInfo {
 
     private final AzureDataLakeStorageClient client;

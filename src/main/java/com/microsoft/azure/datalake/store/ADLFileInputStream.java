@@ -172,7 +172,7 @@ public class ADLFileInputStream extends InputStream {
      * the server
      *
      * @return the number of bytes availabel
-     * @throws IOException
+     * @throws IOException throws {@link ADLException} if call fails
      */
     @Override
     public int available() throws IOException {
@@ -181,8 +181,8 @@ public class ADLFileInputStream extends InputStream {
 
     /**
      * gets the position of the cursor within the file
-     * @return
-     * @throws IOException
+     * @return position of the cursor
+     * @throws IOException throws {@link ADLException} if call fails
      */
     long getPos() throws IOException {
         return fCursor + bCursor;

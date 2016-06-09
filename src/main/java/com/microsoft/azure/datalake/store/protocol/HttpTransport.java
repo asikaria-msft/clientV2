@@ -14,18 +14,10 @@ import java.net.*;
 import java.util.UUID;
 
 
-
-
-
-
-
-// TODO: Look again at the timeout implementation -- seems inadequate
-
-
 /**
  *
  * The core class that does the actual network communication. All the REST methods
- * use this class to make the actual HTTP calls.
+ * use this class to make HTTP calls.
  * <P>
  *     There are two calls in this class:
  *     makeSingleCall - this makes an HTTP request.
@@ -33,6 +25,8 @@ import java.util.UUID;
  * </P>
  */
 class HttpTransport {
+
+    private static final String API_VERSION = "2015-10-01-preview"; // API version used in REST requests
 
     /**
      * calls {@link #makeSingleCall(AzureDataLakeStorageClient, Operation, String, QueryParams, byte[], int, int, RequestOptions, OperationResponse) makeSingleCall}
@@ -168,7 +162,7 @@ class HttpTransport {
         urlString.append('?');
 
         queryParams.setOp(op);
-        queryParams.setApiVersion("2015-10-01-preview");
+        queryParams.setApiVersion(API_VERSION);
         urlString.append(queryParams.serialize());
         try {
             // Setup Http Request (method and headers)
@@ -179,8 +173,9 @@ class HttpTransport {
             conn.setRequestProperty("User-Agent", getUserAgent(client.getUserAgentSuffix()));
             conn.setRequestProperty("x-ms-client-request-id", opts.requestid);
             String latencyHeader = LatencyTracker.get();
-            if (latencyHeader!=null) conn.setRequestProperty("x-ms-adl-ClientLatency", latencyHeader);
+            if (latencyHeader!=null) conn.setRequestProperty("x-ms-adl-client-latency", latencyHeader);
             conn.setConnectTimeout(opts.timeout);
+            conn.setReadTimeout(opts.timeout);
             conn.setUseCaches(false);
             conn.setRequestMethod(op.method);
 

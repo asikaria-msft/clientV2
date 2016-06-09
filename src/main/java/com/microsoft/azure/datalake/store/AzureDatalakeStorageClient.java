@@ -113,7 +113,7 @@ public class AzureDataLakeStorageClient {
      * Note that creating this object does not contact the server, it only creates a local object that can be used
      * to operate on the corresponding directory on the server.
      * </P>
-     * @param directoryName
+     * @param directoryName name of the directory
      * @return {@link ADLDirectoryInfo} object that can be used to manipulate or query a directory
      */
     public ADLDirectoryInfo getDirectoryInfo(String directoryName) {

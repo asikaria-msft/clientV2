@@ -4,13 +4,23 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 
 /**
- * LatencyRacker keeps track of client-preceived request latencies, to be reported on the next REST request.
+ * {@code LatencyTracker} keeps track of client-preceived request latencies, to be reported on the next REST request.
  * Every request adds its result (success/failure and latency) to LatencyTracker. When a request is made,
  * the SDK checks LatencyTracker to see if there are any latency stats to be reported. If so, the stats are added
- * as an HTTP header on the next request.
+ * as an HTTP header ({@code x-ms-adl-client-latency}) on the next request.
  * <P>
  * To disable this reporting, user can call {@link #disable()}.
  * </P>
+ * Contents of data reported back:
+ * <UL>
+ * <LI>Client Request ID of last request</LI>
+ * <LI>Retry Number</LI>
+ * <LI>latency in milliseconds</LI>
+ * <LI>error code (if request failed)</LI>
+ * <LI>Operation</LI>
+ * <LI>Request+response body Size</LI>
+ * </UL>
+ *
  */
 public class LatencyTracker {
     /*
@@ -41,10 +51,10 @@ public class LatencyTracker {
      *
      */
     public static synchronized void disable() {
-        // using synchronized causes update to "disabled" to be published, so other threads will see updated value.
+        // using synchronized causes update to disabled to be published, so other threads will see updated value.
         // Deadlocks:
-        //    Since this is the only method that acquires lock on the class object, deadlock qith Q's lock is not an
-        //        issue (i.e., lock order is deterministic throughout the class: LatencyTracker.class, then Q)
+        //    Since this is the only method that acquires lock on the class object, deadlock with Q's lock is not an
+        //        issue (i.e., lock order is same throughout the class: LatencyTracker.class, then Q)
         disabled = true;
         Q.clear();
         // The clear does not guarantee that Q will be empty afterwards - e.g., if another thread was in the middle

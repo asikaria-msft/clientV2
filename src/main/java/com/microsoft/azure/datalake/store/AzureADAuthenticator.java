@@ -31,7 +31,7 @@ public class AzureADAuthenticator {
      * @param clientId the client ID (GUID) of the client web app
      * @param clientSecret the secret key of the client web app
      * @return {@link AzureADToken} obtained using the creds
-     * @throws IOException
+     * @throws IOException throws IOException if there is a failure in connecting to Azure AD
      */
     public static AzureADToken getTokenUsingClientCreds(String authEndpoint, String clientId, String clientSecret)
             throws IOException

@@ -7,7 +7,13 @@ import com.microsoft.azure.datalake.store.retrypolicies.ExponentialOnThrottlePol
 
 import java.util.List;
 
-
+/**
+ * A local Java object that represents a directory on the server.
+ * <P>
+ * Methods on this class enable manipulation of the directory's
+ * contents and attributes.
+ * </P>
+ */
 public class ADLDirectoryInfo {
 
     private final AzureDataLakeStorageClient client;

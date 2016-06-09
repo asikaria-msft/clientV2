@@ -2,6 +2,13 @@ package com.microsoft.azure.datalake.store.protocol;
 
 import java.io.InputStream;
 
+/**
+ * information about a response from a server call.
+ *
+ * This class is a container for all the information from making a server call.
+ *
+ *
+ */
 public class OperationResponse {
     /**
      * whether the request was successful. Callers should always check for success before using any return value from

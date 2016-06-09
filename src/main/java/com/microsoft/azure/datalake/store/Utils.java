@@ -3,6 +3,15 @@ package com.microsoft.azure.datalake.store;
 import java.io.InputStream;
 import java.net.URI;
 
+/**
+ * Utility methods to enable one-liners for simple functionality.
+ *
+ * The methods are all based on calls to the SDK methods, these are
+ * just convenience methods for common tasks.
+ *
+ *
+ *
+ */
 public class Utils {
 
     private AzureDataLakeStorageClient client;
@@ -43,6 +52,7 @@ public class Utils {
      * Does an atomic append to the file - the append either succeeds fully, or fails
      * fully - the contents are not partially appended.
      *
+     * @param fileName name of file to append to
      * @param bytesToAppend
      *          the byte buffer to append. Max buffer size can be 4MB.
      * @return returns true on success

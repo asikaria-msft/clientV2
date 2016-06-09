@@ -23,16 +23,20 @@ import java.util.List;
  * To call the methods, instantiate a {@link RequestOptions} object first. Assign any of the
  * member values as needed (e.g., the RetryPolicy). Then create a new {@link OperationResponse} object. The
  * {@link OperationResponse} is used for passing the call results and stats back from the call.
- * <P></P>
+ * </P><P>
  * Failures originating in Core methods are communicated back through the {@link OperationResponse} parameter,
- * not through exceptions. There is a convenience method ({@link #getExceptionFromResp(OperationResponse, String)})
+ * not through exceptions. There is a convenience method ({@link #getExceptionFromResp(OperationResponse, String) getExceptionFromResp})
  * to generate an exception from the response, if the response indicates a failure.
- * <P></P>
+ * </P><P>
  * <B>Thread Safety: </B> all static methods in this class are thread-safe
  *
  * </P>
  */
 public class Core {
+
+    // no constructor - class has static methods only
+    private Core() {}
+
 
     /**
      * creates an {@link ADLException} from {@link OperationResponse}. If {@link OperationResponse#successful} is
