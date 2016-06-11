@@ -67,8 +67,7 @@ class HttpTransport {
             makeSingleCall(client, op, path, queryParams, requestBody, offsetWithinContentsArray, length, opts, resp);
             resp.lastCallLatency = System.nanoTime() - start;
             resp.numRetries = retryCount;
-            if (       (resp.ex == null)
-                    && (resp.httpResponseCode >=100 && resp.httpResponseCode < 300) ) {   // 1xx and 2xx return codes
+            if (isSuccessfulResponse(resp, op)) {
                 resp.successful = true;
                 LatencyTracker.addLatency(opts.requestid, retryCount, resp.lastCallLatency, op.name, length + resp.responseContentLength);
                 return;
@@ -84,6 +83,17 @@ class HttpTransport {
                 retryCount++;
             }
         } while (opts.retryPolicy.shouldRetry(resp.httpResponseCode, resp.ex));
+    }
+
+    private static boolean isSuccessfulResponse(OperationResponse resp, Operation op) {
+        if (resp.ex != null) return false;
+        if (resp.httpResponseCode >=100 && resp.httpResponseCode < 300) return true; // 1xx and 2xx return codes
+        if  (    (op == Operation.OPEN)
+              && (resp.httpResponseCode == 403 || resp.httpResponseCode == 416)      // EOF for OPEN
+            ) {
+            return true;
+        }
+        return false;         //anything else
     }
 
     /**
@@ -178,6 +188,7 @@ class HttpTransport {
             conn.setReadTimeout(opts.timeout);
             conn.setUseCaches(false);
             conn.setRequestMethod(op.method);
+            conn.setDoInput(true);
 
             // populate request body if applicable
              if (!op.method.equals("GET")) {
@@ -207,8 +218,8 @@ class HttpTransport {
 
             // if request failed, then the body of an HTTP 4xx or 5xx response contains erro info as JSon
             if (resp.httpResponseCode >= 400) {
-                if (resp.responseContentLength > 0 && conn.getInputStream() != null) {
-                    getCodesFromJSon(conn.getInputStream(), resp);
+                if (resp.responseContentLength > 0 && conn.getErrorStream() != null) {
+                    getCodesFromJSon(conn.getErrorStream(), resp);
                     return;
                 }
             }

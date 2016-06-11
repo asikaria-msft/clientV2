@@ -129,7 +129,7 @@ public class MyApp {
             System.out.println(ex.getMessage());
         }
 
-        // concatenate, rename, GetFileStatus
+        // get file status
         try {
             DirectoryEntry ent = file4.getDirectoryEntry();
             printDirectoryInfo(ent);

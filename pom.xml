@@ -45,12 +45,12 @@
         <executions>
           <execution>
             <id>copy-resources</id>
-            <phase>package</phase>
+            <phase>process-test-resources</phase>
             <goals>
               <goal>copy-resources</goal>
             </goals>
             <configuration>
-              <outputDirectory>${basedir}/target</outputDirectory>
+              <outputDirectory>${basedir}</outputDirectory>
               <resources>
                 <resource>
                   <directory>src/test/configfiles</directory>

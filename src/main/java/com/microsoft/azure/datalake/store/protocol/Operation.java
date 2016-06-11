@@ -17,7 +17,7 @@ enum Operation {
     CHECKACCESS        ("CHECKACCESS",        "GET",    C.requiresBodyFalse, C.returnsBodyTrue,  C.isExtFalse),
     CREATE             ("CREATE",             "PUT",    C.requiresBodyTrue,  C.returnsBodyFalse, C.isExtFalse),
     MKDIRS             ("MKDIRS",             "PUT",    C.requiresBodyFalse, C.returnsBodyTrue,  C.isExtFalse),
-    RENAME             ("RENAME",             "PUT",    C.requiresBodyFalse, C.returnsBodyFalse, C.isExtFalse),
+    RENAME             ("RENAME",             "PUT",    C.requiresBodyFalse, C.returnsBodyTrue,  C.isExtFalse),
     SETOWNER           ("SETOWNER",           "PUT",    C.requiresBodyFalse, C.returnsBodyFalse, C.isExtFalse),
     SETPERMISSION      ("SETPERMISSION",      "PUT",    C.requiresBodyFalse, C.returnsBodyFalse, C.isExtFalse),
     SETTIMES           ("SETTIMES",           "PUT",    C.requiresBodyFalse, C.returnsBodyFalse, C.isExtFalse),

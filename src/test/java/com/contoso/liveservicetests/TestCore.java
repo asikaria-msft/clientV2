@@ -1,9 +1,20 @@
 package com.contoso.liveservicetests;
 
-import org.junit.Before;
+import com.microsoft.azure.datalake.store.ADLException;
+import com.microsoft.azure.datalake.store.AzureADAuthenticator;
+import com.microsoft.azure.datalake.store.AzureADToken;
+import com.microsoft.azure.datalake.store.AzureDataLakeStorageClient;
+import com.microsoft.azure.datalake.store.protocol.Core;
+import com.microsoft.azure.datalake.store.protocol.OperationResponse;
+import com.microsoft.azure.datalake.store.protocol.RequestOptions;
+import org.junit.AfterClass;
+import org.junit.Assume;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -11,15 +22,147 @@ import static org.junit.Assert.*;
 
 public class TestCore {
 
-    Properties prop = null;
     final UUID instanceGuid = UUID.randomUUID();
+    static Properties prop = null;
+    static AzureADToken aadToken = null;
+    static String directory = null;
+    static AzureDataLakeStorageClient client = null;
+    static final boolean testsEnabled = true;
 
-    @Before
-    public void setup() throws IOException {
+
+    @BeforeClass
+    public static void setup() throws IOException {
         prop = HelperUtils.getProperties();
+        aadToken = AzureADAuthenticator.getTokenUsingClientCreds(prop.getProperty("OAuth2TokenUrl"),
+                                                                 prop.getProperty("ClientId"),
+                                                                 prop.getProperty("ClientSecret") );
+        UUID guid = UUID.randomUUID();
+        directory = "/" + prop.getProperty("dirName") + "/" + UUID.randomUUID();
+        String account = prop.getProperty("StoreAcct") + ".azuredatalakestore.net";
+        client = AzureDataLakeStorageClient.createClient(account, aadToken);
+    }
+
+    @AfterClass
+    public static void teardown() {
+    }
+
+    /*
+    Create tests
+    */
+
+    @Test
+    public void createSmallFileWithOverWrite() throws IOException {
+        Assume.assumeTrue(testsEnabled);
+        String filename = directory + "/" + "CoreCreateSmallFileWithOverWrite.txt";
+
+        byte [] contents = HelperUtils.getSampleText1();
+        putFileContents(filename, contents, true);
+
+        byte[] b = getFileContents(filename, contents.length * 2);
+        assertTrue("file contents should match", Arrays.equals(b, contents));
+        assertTrue("file length should match what was written", b.length == contents.length);
+    }
+
+    @Test
+    public void createSmallFileWithNoOverwrite() throws IOException {
+        Assume.assumeTrue(testsEnabled);
+        String filename = directory + "/" + "CoreCreateSmallFileWithNoOverwrite.txt";
+
+        byte [] contents = HelperUtils.getSampleText1();
+        putFileContents(filename, contents, false);
+
+        byte[] b = getFileContents(filename, contents.length * 2);
+        assertTrue("file length should match what was written", b.length == contents.length);
+        assertTrue("file contents should match", Arrays.equals(b, contents));
+    }
+
+    @Test
+    public void create4MBFile() throws IOException {
+        Assume.assumeTrue(testsEnabled);
+        String filename = directory + "/" + "CoreCreate4MBFile.txt";
+
+        byte [] contents = HelperUtils.getRandomBuffer(4 * 1024 * 1024);
+        putFileContents(filename, contents, true);
+
+        byte[] b = getFileContents(filename, contents.length * 2);
+        assertTrue("file length should match what was written", b.length == contents.length);
+        assertTrue("file contents should match", Arrays.equals(b, contents));
+    }
+
+    @Test
+    public void create5MBFile() throws IOException {
+        Assume.assumeTrue(testsEnabled);
+        String filename = directory + "/" + "CoreCreate5MBFile.txt";
+
+        byte [] contents = HelperUtils.getRandomBuffer(11 * 1024 * 1024);
+        putFileContents(filename, contents, true);
+
+        byte[] b = getFileContents(filename, contents.length * 2);
+        assertTrue("file length should match what was written", b.length == contents.length);
+        assertTrue("file contents should match", Arrays.equals(b, contents));
+    }
+
+    @Test
+    public void createOverwriteFile() throws IOException {
+        Assume.assumeTrue(testsEnabled);
+        String filename = directory + "/" + "CoreCreateOverWriteFile.txt";
+
+        byte[] contents = HelperUtils.getSampleText1();
+        putFileContents(filename, contents, true);
+
+        contents = HelperUtils.getSampleText2();
+        putFileContents(filename, contents, true);
+
+        byte[] b = getFileContents(filename, contents.length * 2);
+        assertTrue("file length should match what was written", b.length == contents.length);
+        assertTrue("file contents should match", Arrays.equals(b, contents));
+    }
+
+    @Test(expected = ADLException.class)
+    public void createNoOverwriteFile() throws IOException {
+        Assume.assumeTrue(testsEnabled);
+        String filename = directory + "/" + "CoreCreateNoOverWriteFile.txt";
+
+        byte[] contents = HelperUtils.getSampleText1();
+        putFileContents(filename, contents, true);
+
+        // attempt to overwrite the same file, but with overwrite flag as false. Should fail.
+        contents = HelperUtils.getSampleText2();
+        putFileContents(filename, contents, false);
     }
 
 
+    private void putFileContents(String filename, byte[] b, boolean overwrite) throws ADLException {
+        RequestOptions opts = new RequestOptions();
+        OperationResponse resp = new OperationResponse();
+        Core.create(filename, overwrite, b, 0, b.length, client, opts, resp);
+        if (!resp.successful) throw Core.getExceptionFromResp(resp, "Error creating file " + filename);
+    }
 
+    private byte[] getFileContents(String filename, int maxLength) throws IOException {
+        byte[] b = new byte[maxLength];
+        int count = 0;
+        boolean eof = false;
 
+        while (!eof && count<b.length) {
+            RequestOptions opts = new RequestOptions();
+            OperationResponse resp = new OperationResponse();
+            InputStream in = Core.open(filename, count, 0, client, opts, resp);
+            System.out.format("Open completed. Current count=%d%n", count);
+            if (!resp.successful) throw Core.getExceptionFromResp(resp, "Error reading from file " + filename);
+            if (resp.httpResponseCode == 403 || resp.httpResponseCode == 416) {
+                eof = true;
+                continue;
+            }
+            int bytesRead;
+            while ((bytesRead = in.read(b, count, b.length - count)) != -1) {
+                count += bytesRead;
+                System.out.format("    read: %d, cumulative:%d%n", bytesRead, count);
+                if (count >= b.length) break;
+            }
+            in.close();
+        }
+        byte[] b2 = Arrays.copyOfRange(b, 0, count);
+        return b2;
+    }
 }

@@ -10,7 +10,7 @@ import java.io.InputStream;
 
 
 /**
- * ADLFIleInputStream can be used to read data from an open file on ADL.
+ * ADLFileInputStream can be used to read data from an open file on ADL.
  * It is a buffering stream, that reads data from the server in bulk, and then
  * satisfies user reads from the buffer. Default buffer size is 4MB.
  *
@@ -28,16 +28,16 @@ public class ADLFileInputStream extends InputStream {
      - CanSetReadahead/CanSetDropbehind - not that hard to do, but not sure who uses it. Will do if needed.
      */
 
-
     private final String filename;
     private final AzureDataLakeStorageClient client;
 
     private final int blocksize = 4 * 1024 *1024;
     private final byte[] buffer = new byte[blocksize]; //4MB byte buffer
 
-    private long fCursor = 0; // bCursor of buffer within file - offset of next offset to read
-    private int bCursor = 0; // bCursor of read within buffer - offset of next byte to be returned from buffer
-    private int limit = 0; // offset of next byte to be read into buffer from service (i.e., upper marker+1 of valid bytes in buffer)
+    private long fCursor = 0;  // bCursor of buffer within file - offset of next offset to read
+    private int bCursor = 0;   // bCursor of read within buffer - offset of next byte to be returned from buffer
+    private int limit = 0;     // offset of next byte to be read into buffer from service (i.e., upper marker+1
+                               //                                                      of valid bytes in buffer)
     private boolean streamClosed = false;
 
     protected long readFromService(long len) throws ADLException {
@@ -52,8 +52,12 @@ public class ADLFileInputStream extends InputStream {
         opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
         InputStream str = Core.open(filename, fCursor, len, client, opts, resp);
+        if (resp.httpResponseCode == 403 || resp.httpResponseCode == 416) {
+            resp.successful = true;
+            return -1; //End-of-file
+        }
         if (!resp.successful) throw Core.getExceptionFromResp(resp, "Error reading from file " + filename);
-        if (resp.responseContentLength == 0 && !resp.responseChunked) return -1;  //End-of-File
+        if (resp.responseContentLength == 0 && !resp.responseChunked) return 0;  //Got nothing
         int bytesRead;
         int totalBytesRead = 0;
         try {

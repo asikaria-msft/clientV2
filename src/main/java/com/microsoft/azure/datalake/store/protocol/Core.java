@@ -38,32 +38,6 @@ public class Core {
     private Core() {}
 
 
-    /**
-     * creates an {@link ADLException} from {@link OperationResponse}. If {@link OperationResponse#successful} is
-     * true, then this method returns null
-     *
-     * @param resp the {@link OperationResponse} to convert to exception
-     * @param defaultMessage message to use if the inner exception does not have a text message.
-     * @return the {@link ADLException}, or {@code null} if the {@code resp.successful} is {@code true}
-     */
-    public static ADLException getExceptionFromResp(OperationResponse resp, String defaultMessage) {
-        if (resp.successful) return null;
-        String msg = (resp.message == null) ? defaultMessage : resp.message;
-        ADLException ex = new ADLException(msg, resp.ex);
-        ex.httpResponseCode = resp.httpResponseCode;
-        ex.httpResponseMessage = resp.httpResponseMessage;
-        ex.requestId = resp.requestId;
-
-        ex.numRetries = resp.numRetries;
-        ex.lastCallLatency = resp.lastCallLatency;
-        ex.responseContentLength = resp.responseContentLength;
-
-        ex.remoteExceptionName = resp.remoteExceptionName;
-        ex.remoteExceptionMessage = resp.remoteExceptionMessage;
-        ex.remoteExceptionJavaClassName = resp.remoteExceptionJavaClassName;
-        return ex;
-    }
-
 
     /**
      * create a file and write to it.
@@ -176,7 +150,7 @@ public class Core {
     }
 
     /**
-     * delete a file from ADL.
+     * delete a file from Azure Data Lake.
      *
      * @param path the full path of the file to delete. The file must already exist.
      * @param recursive if deleting a directory, then whether to delete all files an directories
@@ -462,4 +436,36 @@ public class Core {
         }
         return null;
     }
+
+
+
+    /**
+     * creates an {@link ADLException} from {@link OperationResponse}. If {@link OperationResponse#successful} is
+     * true, then this method returns null
+     *
+     * @param resp the {@link OperationResponse} to convert to exception
+     * @param defaultMessage message to use if the inner exception does not have a text message.
+     * @return the {@link ADLException}, or {@code null} if the {@code resp.successful} is {@code true}
+     */
+    public static ADLException getExceptionFromResp(OperationResponse resp, String defaultMessage) {
+        if (resp.successful) return null;
+        String msg = (resp.message == null) ? defaultMessage : resp.message;
+        ADLException ex = new ADLException(msg, resp.ex);
+        ex.httpResponseCode = resp.httpResponseCode;
+        ex.httpResponseMessage = resp.httpResponseMessage;
+        ex.requestId = resp.requestId;
+
+        ex.numRetries = resp.numRetries;
+        ex.lastCallLatency = resp.lastCallLatency;
+        ex.responseContentLength = resp.responseContentLength;
+
+        ex.remoteExceptionName = resp.remoteExceptionName;
+        ex.remoteExceptionMessage = resp.remoteExceptionMessage;
+        ex.remoteExceptionJavaClassName = resp.remoteExceptionJavaClassName;
+        return ex;
+    }
+
+
+
+
 }
