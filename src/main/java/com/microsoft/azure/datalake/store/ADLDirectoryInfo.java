@@ -56,8 +56,8 @@ public class ADLDirectoryInfo {
         RequestOptions opts = new RequestOptions();
         opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
-        Core.mkdirs(dirname, client, opts, resp);
-        if (!resp.successful) {
+        boolean succeeded = Core.mkdirs(dirname, client, opts, resp);
+        if (!resp.successful || !succeeded) {
             throw Core.getExceptionFromResp(resp, "Error creating directory " + dirname);
         }
     }
@@ -66,8 +66,8 @@ public class ADLDirectoryInfo {
         RequestOptions opts = new RequestOptions();
         opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
-        Core.rename(dirname, newName, client, opts, resp);
-        if (!resp.successful) {
+        boolean succeeded = Core.rename(dirname, newName, client, opts, resp);
+        if (!resp.successful || !succeeded) {
             throw Core.getExceptionFromResp(resp, "Error renaming directory " + dirname);
         }
         dirname = newName;
@@ -78,8 +78,8 @@ public class ADLDirectoryInfo {
         RequestOptions opts = new RequestOptions();
         opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
-        Core.delete(dirname, recursive, client, opts, resp);
-        if (!resp.successful) {
+        boolean succeeded = Core.delete(dirname, recursive, client, opts, resp);
+        if (!resp.successful || !succeeded) {
             throw Core.getExceptionFromResp(resp, "Error deleting directory " + dirname);
         }
     }

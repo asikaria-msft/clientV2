@@ -50,11 +50,14 @@
               <goal>copy-resources</goal>
             </goals>
             <configuration>
-              <outputDirectory>${basedir}</outputDirectory>
+              <outputDirectory>${basedir}/target</outputDirectory>
               <resources>
                 <resource>
                   <directory>src/test/configfiles</directory>
                   <filtering>false</filtering>
+                  <excludes>
+                    <exclude>.gitignore</exclude>
+                  </excludes>
                 </resource>
               </resources>
             </configuration>

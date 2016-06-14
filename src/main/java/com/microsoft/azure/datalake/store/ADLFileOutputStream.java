@@ -98,7 +98,6 @@ public class ADLFileOutputStream extends OutputStream {
     @Override
     public void flush() throws IOException {
         if (streamClosed) throw new IOException("attempting to flush a closed stream;");
-        if (cursor == 0) return;  // nothing to flush
         if (!created && isCreate) {   // actually, checking just !created would suffice; but leaving isCreated for readability
             RequestOptions opts = new RequestOptions();
             opts.retryPolicy = new NoRetryPolicy();
@@ -108,7 +107,7 @@ public class ADLFileOutputStream extends OutputStream {
                 throw Core.getExceptionFromResp(resp, "Error creating file " + filename);
             }
             created = true;
-        } else {
+        } else if (cursor > 0){  // if there is anything to flush
             RequestOptions opts = new RequestOptions();
             opts.retryPolicy = new NoRetryPolicy();
             OperationResponse resp = new OperationResponse();

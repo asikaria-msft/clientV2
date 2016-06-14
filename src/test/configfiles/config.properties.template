@@ -10,4 +10,6 @@ ClientAppName=
 ClientRedirectUri=
 Resource=https://management.core.windows.net/
 
-
+#Enable/disable sets of tests
+CoreTestsEnabled=true
+SdkTestsEnabled=true

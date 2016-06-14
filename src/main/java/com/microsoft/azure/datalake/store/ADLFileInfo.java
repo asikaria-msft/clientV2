@@ -14,6 +14,7 @@ import java.util.List;
  * Methods on this class enable manipulation of the file's
  * contents and attributes.
  * </P>
+ * <B>Not Thread Safe:</B> methods in this class are not thread-safe.
  */
 public class ADLFileInfo {
 
@@ -53,19 +54,19 @@ public class ADLFileInfo {
         RequestOptions opts = new RequestOptions();
         opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
-        Core.rename(filename, newName, client, opts, resp);
-        if (!resp.successful) {
+        boolean succeeded = Core.rename(filename, newName, client, opts, resp);
+        if (!resp.successful || !succeeded) {
             throw Core.getExceptionFromResp(resp, "Error renaming file " + filename);
         }
         filename = newName;
     }
 
-    public void delete(boolean recursive) throws ADLException {
+    public void delete() throws ADLException {
         RequestOptions opts = new RequestOptions();
         opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
-        Core.delete(filename, recursive, client, opts, resp);
-        if (!resp.successful) {
+        boolean succeeded = Core.delete(filename, false, client, opts, resp);
+        if (!resp.successful || !succeeded) {
             throw Core.getExceptionFromResp(resp, "Error deleting directory " + filename);
         }
     }

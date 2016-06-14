@@ -27,7 +27,7 @@ public class TestCore {
     static AzureADToken aadToken = null;
     static String directory = null;
     static AzureDataLakeStorageClient client = null;
-    static final boolean testsEnabled = true;
+    static boolean testsEnabled = true;
 
 
     @BeforeClass
@@ -40,6 +40,7 @@ public class TestCore {
         directory = "/" + prop.getProperty("dirName") + "/" + UUID.randomUUID();
         String account = prop.getProperty("StoreAcct") + ".azuredatalakestore.net";
         client = AzureDataLakeStorageClient.createClient(account, aadToken);
+        testsEnabled = Boolean.parseBoolean(prop.getProperty("CoreTestsEnabled", "true"));
     }
 
     @AfterClass
@@ -53,7 +54,7 @@ public class TestCore {
     @Test
     public void createSmallFileWithOverWrite() throws IOException {
         Assume.assumeTrue(testsEnabled);
-        String filename = directory + "/" + "CoreCreateSmallFileWithOverWrite.txt";
+        String filename = directory + "/" + "Core.CreateSmallFileWithOverWrite.txt";
 
         byte [] contents = HelperUtils.getSampleText1();
         putFileContents(filename, contents, true);
@@ -66,7 +67,7 @@ public class TestCore {
     @Test
     public void createSmallFileWithNoOverwrite() throws IOException {
         Assume.assumeTrue(testsEnabled);
-        String filename = directory + "/" + "CoreCreateSmallFileWithNoOverwrite.txt";
+        String filename = directory + "/" + "Core.CreateSmallFileWithNoOverwrite.txt";
 
         byte [] contents = HelperUtils.getSampleText1();
         putFileContents(filename, contents, false);
@@ -79,7 +80,7 @@ public class TestCore {
     @Test
     public void create4MBFile() throws IOException {
         Assume.assumeTrue(testsEnabled);
-        String filename = directory + "/" + "CoreCreate4MBFile.txt";
+        String filename = directory + "/" + "Core.Create4MBFile.txt";
 
         byte [] contents = HelperUtils.getRandomBuffer(4 * 1024 * 1024);
         putFileContents(filename, contents, true);
@@ -92,7 +93,7 @@ public class TestCore {
     @Test
     public void create5MBFile() throws IOException {
         Assume.assumeTrue(testsEnabled);
-        String filename = directory + "/" + "CoreCreate5MBFile.txt";
+        String filename = directory + "/" + "Core.Create5MBFile.txt";
 
         byte [] contents = HelperUtils.getRandomBuffer(11 * 1024 * 1024);
         putFileContents(filename, contents, true);
@@ -105,7 +106,7 @@ public class TestCore {
     @Test
     public void createOverwriteFile() throws IOException {
         Assume.assumeTrue(testsEnabled);
-        String filename = directory + "/" + "CoreCreateOverWriteFile.txt";
+        String filename = directory + "/" + "Core.CreateOverWriteFile.txt";
 
         byte[] contents = HelperUtils.getSampleText1();
         putFileContents(filename, contents, true);
@@ -121,7 +122,7 @@ public class TestCore {
     @Test(expected = ADLException.class)
     public void createNoOverwriteFile() throws IOException {
         Assume.assumeTrue(testsEnabled);
-        String filename = directory + "/" + "CoreCreateNoOverWriteFile.txt";
+        String filename = directory + "/" + "Core.CreateNoOverWriteFile.txt";
 
         byte[] contents = HelperUtils.getSampleText1();
         putFileContents(filename, contents, true);
