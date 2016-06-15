@@ -7,10 +7,13 @@ import com.microsoft.azure.datalake.store.AzureDataLakeStorageClient;
 import com.microsoft.azure.datalake.store.protocol.Core;
 import com.microsoft.azure.datalake.store.protocol.OperationResponse;
 import com.microsoft.azure.datalake.store.protocol.RequestOptions;
+
 import org.junit.AfterClass;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,7 +21,7 @@ import java.util.Arrays;
 import java.util.Properties;
 import java.util.UUID;
 
-import static org.junit.Assert.*;
+
 
 public class TestCore {
 

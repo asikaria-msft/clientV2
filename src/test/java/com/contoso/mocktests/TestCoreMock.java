@@ -1,5 +1,5 @@
 package com.contoso.mocktests;
 
 
-public class TestCore {
+public class TestCoreMock {
 }

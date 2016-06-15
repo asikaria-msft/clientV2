@@ -1,10 +1,13 @@
 package com.microsoft.azure.datalake.store;
 
+import com.microsoft.azure.datalake.store.acl.AclEntry;
+import com.microsoft.azure.datalake.store.acl.AclStatus;
 import com.microsoft.azure.datalake.store.protocol.Core;
 import com.microsoft.azure.datalake.store.protocol.OperationResponse;
 import com.microsoft.azure.datalake.store.protocol.RequestOptions;
 import com.microsoft.azure.datalake.store.retrypolicies.ExponentialOnThrottlePolicy;
 
+import java.util.Date;
 import java.util.List;
 
 
@@ -92,33 +95,102 @@ public class ADLFileInfo {
         }
     }
 
-    public boolean canRead() {
+    public void setTimes(Date atime, Date mtime) throws ADLException {
+        long atimeLong = (atime == null)? -1 : atime.getTime();
+        long mtimeLong = (mtime == null)? -1 : mtime.getTime();
+
+        RequestOptions opts = new RequestOptions();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
+        OperationResponse resp = new OperationResponse();
+        Core.setTimes(filename, atimeLong, mtimeLong, client, opts, resp);
+        if (!resp.successful) {
+            throw Core.getExceptionFromResp(resp, "Error setting times for file " + filename);
+        }
+    }
+
+    public void setPermission(String octalPermissions) throws ADLException {
+        RequestOptions opts = new RequestOptions();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
+        OperationResponse resp = new OperationResponse();
+        Core.setPermission(filename, octalPermissions, client, opts, resp);
+        if (!resp.successful) {
+            throw Core.getExceptionFromResp(resp, "Error setting times for file " + filename);
+        }
+    }
+
+    public boolean checkAccess(String rwx) throws ADLException {
+        RequestOptions opts = new RequestOptions();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
+        OperationResponse resp = new OperationResponse();
+        Core.checkAccess(filename, rwx, client, opts, resp);
+        if (!resp.successful) {
+            if (resp.httpResponseCode == 401 || resp.httpResponseCode == 403) return false;
+            throw Core.getExceptionFromResp(resp, "Error checking access for file " + filename);
+        }
         return true;
     }
 
-    public boolean canWrite() {
-        return true;
+    public boolean canRead() throws ADLException {
+        return checkAccess("r--");
     }
 
-    public boolean canExecute() {
-        return true;
+    public boolean canWrite() throws ADLException  {
+        return checkAccess("-w-");
     }
 
-    public List<String> getAcls() {
-        return null;
+    public boolean canExecute() throws ADLException  {
+        return checkAccess("--x");
     }
 
-    public boolean replaceAcls(List<String> aclSpec) {
-        return true;
+    public void modifyAclEntries(List<AclEntry> aclSpec) throws ADLException {
+        RequestOptions opts = new RequestOptions();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
+        OperationResponse resp = new OperationResponse();
+        Core.modifyAclEntries(filename, aclSpec, client, opts, resp);
+        if (!resp.successful) {
+            throw Core.getExceptionFromResp(resp, "Error modifying ACLs for file " + filename);
+        }
     }
 
-    public boolean addAcls(List<String> aclSpec) {
-        return true;
+    public void removeAclEntries(List<AclEntry> aclSpec) throws ADLException {
+        RequestOptions opts = new RequestOptions();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
+        OperationResponse resp = new OperationResponse();
+        Core.removeAclEntries(filename, aclSpec, client, opts, resp);
+        if (!resp.successful) {
+            throw Core.getExceptionFromResp(resp, "Error removing ACLs for file " + filename);
+        }
     }
 
-    public boolean removeAcls(List<String> aclSpec) {
-        return true;
+    public void removeAllAcls() throws ADLException {
+        RequestOptions opts = new RequestOptions();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
+        OperationResponse resp = new OperationResponse();
+        Core.removeAcl(filename, client, opts, resp);
+        if (!resp.successful) {
+            throw Core.getExceptionFromResp(resp, "Error removing all ACLs for file " + filename);
+        }
     }
 
+    public void replaceAllAcls(List<AclEntry> aclSpec) throws ADLException {
+        RequestOptions opts = new RequestOptions();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
+        OperationResponse resp = new OperationResponse();
+        Core.setAcl(filename, aclSpec, client, opts, resp);
+        if (!resp.successful) {
+            throw Core.getExceptionFromResp(resp, "Error replacing ACLs for file " + filename);
+        }
+    }
 
+    public AclStatus getAclStatus() throws ADLException {
+        AclStatus status = null;
+        RequestOptions opts = new RequestOptions();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
+        OperationResponse resp = new OperationResponse();
+        status = Core.getAclStatus(filename, client, opts, resp);
+        if (!resp.successful) {
+            throw Core.getExceptionFromResp(resp, "Error getting  ACL Status for file " + filename);
+        }
+        return status;
+    }
 }

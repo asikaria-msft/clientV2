@@ -1,6 +1,7 @@
 package com.contoso;
 
 import com.microsoft.azure.datalake.store.*;
+import com.microsoft.azure.datalake.store.acl.*;
 import com.microsoft.azure.datalake.store.protocol.Core;
 import com.microsoft.azure.datalake.store.protocol.OperationResponse;
 import com.microsoft.azure.datalake.store.protocol.RequestOptions;
@@ -10,13 +11,38 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class MyApp {
     public static void main(String [ ] args) {
 
+        doAclTest();
+
+    }
+
+    public static void doAclTest() {
+        aclPrint("user:hello:rwx", false);
+        aclPrint("user::rwx", false);
+        aclPrint("default:user:hello:rwx", false);
+        aclPrint("user:hello", false);
+        aclPrint("group:: r-x", false);
+        aclPrint("user:hello:---", false);
+    }
+
+    public static void aclPrint(String acl, boolean removeAcl) {
+        AclEntry ae;
+        try {
+            ae = AclEntry.parseAclEntry(acl, removeAcl);
+        } catch (IllegalArgumentException ex) {
+            System.out.println("Illegal aclEntry " + acl);
+            return;
+        }
+        System.out.println(acl + " = " + ae.toString());
+    }
+
+    public static void doTest()
+    {
         // Do Auth
         String clientID = "f536fd51-a65c-4df4-b50f-2656bdd37b84";
         String clientCreds = "LA4hobTrc4ZswTlK0SwMPufj3NyvProo+IgIYZzCV6w=";
@@ -35,6 +61,7 @@ public class MyApp {
 
         runSdkMethods(adlClient);
     }
+
 
     private static byte[] getSampleContent() {
         ByteArrayOutputStream s = new ByteArrayOutputStream();
@@ -153,7 +180,7 @@ public class MyApp {
         System.out.format("Name: %s%n", ent.name);
         System.out.format("FullName: %s%n", ent.fullName);
         System.out.format("Length: %d%n", ent.length);
-        System.out.format("Type: %s%n", ent.type.toString());
+        System.out.format("AclType: %s%n", ent.type.toString());
         System.out.format("Group: %s%n", ent.group);
         System.out.format("User: %s%n", ent.user);
         System.out.format("Permission: %s%n", ent.permission);

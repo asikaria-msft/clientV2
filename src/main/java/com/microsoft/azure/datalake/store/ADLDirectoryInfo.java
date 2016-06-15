@@ -1,10 +1,13 @@
 package com.microsoft.azure.datalake.store;
 
+import com.microsoft.azure.datalake.store.acl.AclEntry;
+import com.microsoft.azure.datalake.store.acl.AclStatus;
 import com.microsoft.azure.datalake.store.protocol.Core;
 import com.microsoft.azure.datalake.store.protocol.OperationResponse;
 import com.microsoft.azure.datalake.store.protocol.RequestOptions;
 import com.microsoft.azure.datalake.store.retrypolicies.ExponentialOnThrottlePolicy;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -62,6 +65,26 @@ public class ADLDirectoryInfo {
         }
     }
 
+    public void delete(boolean recursive) throws ADLException {
+        RequestOptions opts = new RequestOptions();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
+        OperationResponse resp = new OperationResponse();
+        boolean succeeded = Core.delete(dirname, recursive, client, opts, resp);
+        if (!resp.successful || !succeeded) {
+            throw Core.getExceptionFromResp(resp, "Error deleting directory " + dirname);
+        }
+    }
+
+    public void removeDefaultAcls() throws ADLException {
+        RequestOptions opts = new RequestOptions();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
+        OperationResponse resp = new OperationResponse();
+        Core.removeDefaultAcl(dirname, client, opts, resp);
+        if (!resp.successful) {
+            throw Core.getExceptionFromResp(resp, "Error removing default ACLs for directory " + dirname);
+        }
+    }
+
     public boolean rename(String newName) throws ADLException {
         RequestOptions opts = new RequestOptions();
         opts.retryPolicy = new ExponentialOnThrottlePolicy();
@@ -72,16 +95,6 @@ public class ADLDirectoryInfo {
         }
         dirname = newName;
         return true;
-    }
-
-    public void delete(boolean recursive) throws ADLException {
-        RequestOptions opts = new RequestOptions();
-        opts.retryPolicy = new ExponentialOnThrottlePolicy();
-        OperationResponse resp = new OperationResponse();
-        boolean succeeded = Core.delete(dirname, recursive, client, opts, resp);
-        if (!resp.successful || !succeeded) {
-            throw Core.getExceptionFromResp(resp, "Error deleting directory " + dirname);
-        }
     }
 
     public DirectoryEntry getDirectoryEntry() throws ADLException {
@@ -95,6 +108,7 @@ public class ADLDirectoryInfo {
         return dirEnt;
     }
 
+
     public void setOwner(String owner, String group) throws ADLException {
         RequestOptions opts = new RequestOptions();
         opts.retryPolicy = new ExponentialOnThrottlePolicy();
@@ -105,35 +119,104 @@ public class ADLDirectoryInfo {
         }
     }
 
+    public void setTimes(Date atime, Date mtime) throws ADLException {
+        long atimeLong = (atime == null)? -1 : atime.getTime();
+        long mtimeLong = (mtime == null)? -1 : mtime.getTime();
 
-    public boolean canRead() {
+        RequestOptions opts = new RequestOptions();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
+        OperationResponse resp = new OperationResponse();
+        Core.setTimes(dirname, atimeLong, mtimeLong, client, opts, resp);
+        if (!resp.successful) {
+            throw Core.getExceptionFromResp(resp, "Error setting times for directory " + dirname);
+        }
+    }
+
+    public void setPermission(String octalPermissions) throws ADLException {
+        RequestOptions opts = new RequestOptions();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
+        OperationResponse resp = new OperationResponse();
+        Core.setPermission(dirname, octalPermissions, client, opts, resp);
+        if (!resp.successful) {
+            throw Core.getExceptionFromResp(resp, "Error setting times for directory " + dirname);
+        }
+    }
+
+    public boolean checkAccess(String rwx) throws ADLException {
+        RequestOptions opts = new RequestOptions();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
+        OperationResponse resp = new OperationResponse();
+        Core.checkAccess(dirname, rwx, client, opts, resp);
+        if (!resp.successful) {
+            if (resp.httpResponseCode == 401 || resp.httpResponseCode == 403) return false;
+            throw Core.getExceptionFromResp(resp, "Error checking access for directory " + dirname);
+        }
         return true;
     }
 
-    public boolean canWrite() {
-        return true;
+    public boolean canRead() throws ADLException {
+        return checkAccess("r--");
     }
 
-    public boolean canExecute() {
-        return true;
+    public boolean canWrite() throws ADLException  {
+        return checkAccess("-w-");
     }
 
-    public List<String> getAcls() {
-        return null;
+    public boolean canExecute() throws ADLException  {
+        return checkAccess("--x");
     }
 
-    public boolean replaceAcls(List<String> aclSpec) {
-        return true;
+    public void modifyAclEntries(List<AclEntry> aclSpec) throws ADLException {
+        RequestOptions opts = new RequestOptions();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
+        OperationResponse resp = new OperationResponse();
+        Core.modifyAclEntries(dirname, aclSpec, client, opts, resp);
+        if (!resp.successful) {
+            throw Core.getExceptionFromResp(resp, "Error modifying ACLs for directory " + dirname);
+        }
     }
 
-    public boolean addAcls(List<String> aclSpec) {
-        return true;
+    public void removeAclEntries(List<AclEntry> aclSpec) throws ADLException {
+        RequestOptions opts = new RequestOptions();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
+        OperationResponse resp = new OperationResponse();
+        Core.removeAclEntries(dirname, aclSpec, client, opts, resp);
+        if (!resp.successful) {
+            throw Core.getExceptionFromResp(resp, "Error removing ACLs for directory " + dirname);
+        }
     }
 
-    public boolean removeAcls(List<String> aclSpec) {
-        return true;
+    public void removeAllAcls() throws ADLException {
+        RequestOptions opts = new RequestOptions();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
+        OperationResponse resp = new OperationResponse();
+        Core.removeAcl(dirname, client, opts, resp);
+        if (!resp.successful) {
+            throw Core.getExceptionFromResp(resp, "Error removing all ACLs for directory " + dirname);
+        }
     }
 
 
 
+    public void replaceAllAcls(List<AclEntry> aclSpec) throws ADLException {
+        RequestOptions opts = new RequestOptions();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
+        OperationResponse resp = new OperationResponse();
+        Core.setAcl(dirname, aclSpec, client, opts, resp);
+        if (!resp.successful) {
+            throw Core.getExceptionFromResp(resp, "Error replacing ACLs for directory " + dirname);
+        }
+    }
+
+    public AclStatus getAclStatus() throws ADLException {
+        AclStatus status = null;
+        RequestOptions opts = new RequestOptions();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
+        OperationResponse resp = new OperationResponse();
+        status = Core.getAclStatus(dirname, client, opts, resp);
+        if (!resp.successful) {
+            throw Core.getExceptionFromResp(resp, "Error getting  ACL Status for directory " + dirname);
+        }
+        return status;
+    }
 }
