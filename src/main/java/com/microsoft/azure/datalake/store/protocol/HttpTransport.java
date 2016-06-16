@@ -78,7 +78,8 @@ class HttpTransport {
             resp.numRetries = retryCount;
             if (isSuccessfulResponse(resp, op)) {
                 resp.successful = true;
-                LatencyTracker.addLatency(opts.requestid, retryCount, resp.lastCallLatency, op.name, length + resp.responseContentLength);
+                LatencyTracker.addLatency(opts.requestid, retryCount, resp.lastCallLatency, op.name,
+                        length + resp.responseContentLength, client.getClientId());
                 if (log.isInfoEnabled()) {
                     String logline = "HTTPRequest,Succeeded," +
                                      opts.requestid + "," +
@@ -98,7 +99,8 @@ class HttpTransport {
                 } else {
                     error = "HTTP" + resp.httpResponseCode;
                 }
-                LatencyTracker.addError(opts.requestid, retryCount, resp.lastCallLatency, error, op.name, length);
+                LatencyTracker.addError(opts.requestid, retryCount, resp.lastCallLatency, error, op.name,
+                        length, client.getClientId());
                 if (log.isInfoEnabled()) {
                     String logline = "HTTPRequest,Failed," +
                             opts.requestid + "," +

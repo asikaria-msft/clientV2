@@ -19,6 +19,7 @@ import java.util.concurrent.ArrayBlockingQueue;
  * <LI>error code (if request failed)</LI>
  * <LI>Operation</LI>
  * <LI>Request+response body Size</LI>
+ * <LI>number for AzureDataLakeStoreClient that made this call</LI>
  * </UL>
  *
  */
@@ -32,6 +33,7 @@ public class LatencyTracker {
       4. error code (if request failed)
       5. Operation
       6. Request+response body Size (if available, zero otherwise)
+      7. Instance of AzureDataLakeStorageClient (a unique number per instance in this VM)
 
      Multiple entries can be on a single request. Entries will be separated by semicolons
      Limit max entries on a single request to three, to limit increase in HTTP request size.
@@ -63,17 +65,17 @@ public class LatencyTracker {
         // very old entries from being sent.
     }
 
-    static void addLatency(String clientRequestId, int retryNum, long latency, String operation, long size) {
+    static void addLatency(String clientRequestId, int retryNum, long latency, String operation, long size, long clientId) {
         if (disabled) return;
         latency = latency / 1000000;  // convert nanoseconds to milliseconds
-        String line = String.format("%s,%d,%d,,%s,%d", clientRequestId, retryNum, latency, operation, size);
+        String line = String.format("%s,%d,%d,,%s,%d,%d", clientRequestId, retryNum, latency, operation, size, clientId);
         Q.offer(line); // non-blocking append. If queue is full then silently discard
     }
 
-    static void addError(String clientRequestId, int retryNum, long latency, String error, String operation, long size) {
+    static void addError(String clientRequestId, int retryNum, long latency, String error, String operation, long size, long clientId) {
         if (disabled) return;
         latency = latency / 1000000; // convert nanoseconds to milliseconds
-        String line = String.format("%s,%d,%d,%s,%s,%d", clientRequestId, retryNum, latency, error, operation, size);
+        String line = String.format("%s,%d,%d,%s,%s,%d,%d", clientRequestId, retryNum, latency, error, operation, size, clientId);
         Q.offer(line); // non-blocking append. If queue is full then silently discard
     }
 
