@@ -66,13 +66,14 @@ public class LatencyTracker {
     static void addLatency(String clientRequestId, int retryNum, long latency, String operation, long size) {
         if (disabled) return;
         latency = latency / 1000000;  // convert nanoseconds to milliseconds
-        String line = String.format("%s,%s,%s,,%s,%s", clientRequestId, Integer.toString(retryNum), Long.toString(latency), operation, Long.toString(size));
+        String line = String.format("%s,%d,%d,,%s,%d", clientRequestId, retryNum, latency, operation, size);
         Q.offer(line); // non-blocking append. If queue is full then silently discard
     }
 
-    static void addError(String clientRequestId, int retryNum, String error, String operation, long size) {
+    static void addError(String clientRequestId, int retryNum, long latency, String error, String operation, long size) {
         if (disabled) return;
-        String line = String.format("%s,%s,,%s,%s,%s", clientRequestId, Integer.toString(retryNum), error, operation, Long.toString(size));
+        latency = latency / 1000000; // convert nanoseconds to milliseconds
+        String line = String.format("%s,%d,%d,%s,%s,%d", clientRequestId, retryNum, latency, error, operation, size);
         Q.offer(line); // non-blocking append. If queue is full then silently discard
     }
 

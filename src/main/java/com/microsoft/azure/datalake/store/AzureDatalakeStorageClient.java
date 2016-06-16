@@ -1,7 +1,11 @@
 package com.microsoft.azure.datalake.store;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.net.URI;
+import java.util.concurrent.atomic.AtomicLong;
 
 
 /**
@@ -17,10 +21,13 @@ import java.net.URI;
  */
 public class AzureDataLakeStorageClient {
 
-
     private final String accountFQDN;
     private String accessToken;
     private String userAgentSuffix;
+    private static final Logger log = LoggerFactory.getLogger("com.microsoft.azure.datalake.store"); // package-default logging policy
+    private static final AtomicLong clientIdCounter = new AtomicLong(0);
+    private final long clientId;
+
 
     /**
      * {@link Utils utils} member that can be used to perform many operations
@@ -33,9 +40,10 @@ public class AzureDataLakeStorageClient {
 
 
     // private constructor, references should be obtained using the createClient factory method
-    private AzureDataLakeStorageClient(String accountFQDN, String accessToken) {
+    private AzureDataLakeStorageClient(String accountFQDN, String accessToken, long clientId) {
         this.accountFQDN = accountFQDN;
         this.accessToken = "Bearer " + accessToken;
+        this.clientId = clientId;
         utils = new Utils(this);
     }
 
@@ -51,12 +59,12 @@ public class AzureDataLakeStorageClient {
         if (accountFQDN == null || accountFQDN.trim().equals("")) {
             throw new IllegalArgumentException("account name is required");
         }
-
         if (token == null || token.accessToken == null || token.accessToken.equals("")) {
             throw new IllegalArgumentException("token is required");
         }
-
-        return new AzureDataLakeStorageClient(accountFQDN, token.accessToken);
+        long clientId =  clientIdCounter.incrementAndGet();
+        log.debug("AzureDatalakeStorageClient {} created for {}", clientId, accountFQDN);
+        return new AzureDataLakeStorageClient(accountFQDN, token.accessToken, clientId);
     }
 
     /**
@@ -75,7 +83,9 @@ public class AzureDataLakeStorageClient {
         if (accessToken == null || accessToken.equals("")) {
             throw new IllegalArgumentException("token is required");
         }
-        return new AzureDataLakeStorageClient(accountFQDN, accessToken);
+        long clientId =  clientIdCounter.incrementAndGet();
+        log.debug("AzureDatalakeStorageClient {} created for {}", clientId, accountFQDN);
+        return new AzureDataLakeStorageClient(accountFQDN, accessToken, clientId);
     }
 
     /**
@@ -88,6 +98,7 @@ public class AzureDataLakeStorageClient {
      * @return {@link ADLFileInfo} object that can be used to manipulate or read a file
      */
     public ADLFileInfo getFileInfo(String filename) {
+        log.debug("FileInfo created for client {} for {}", this.clientId, filename);
         return new ADLFileInfo(this, filename);
     }
 
@@ -117,6 +128,7 @@ public class AzureDataLakeStorageClient {
      * @return {@link ADLDirectoryInfo} object that can be used to manipulate or query a directory
      */
     public ADLDirectoryInfo getDirectoryInfo(String directoryName) {
+        log.debug("DirectoryInfo created for client {} for {}", this.clientId, directoryName);
         return new ADLDirectoryInfo(this, directoryName);
     }
 
@@ -127,6 +139,7 @@ public class AzureDataLakeStorageClient {
      * @param token The OAuth2 Token
      */
     public synchronized void updateToken(AzureADToken token) {
+        log.debug("AAD Token Updated for client client {} for account {}", clientId, accountFQDN);
         this.accessToken = "Bearer " + token.accessToken;
     }
 
@@ -137,6 +150,7 @@ public class AzureDataLakeStorageClient {
      * @param accessToken The AAD Token string
      */
     public synchronized void updateToken(String accessToken) {
+        log.debug("AAD Token Updated for client client {} for account {}", clientId, accountFQDN);
         this.accessToken = "Bearer " + accessToken;
     }
 
@@ -174,6 +188,10 @@ public class AzureDataLakeStorageClient {
      */
     public synchronized void setUserAgentSuffix(String userAgentSuffix) {
         this.userAgentSuffix = userAgentSuffix;
+    }
+
+    public long getClientId() {
+        return this.clientId;
     }
 
 }

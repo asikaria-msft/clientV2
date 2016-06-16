@@ -4,6 +4,8 @@ import com.microsoft.azure.datalake.store.protocol.Core;
 import com.microsoft.azure.datalake.store.protocol.OperationResponse;
 import com.microsoft.azure.datalake.store.protocol.RequestOptions;
 import com.microsoft.azure.datalake.store.retrypolicies.NoRetryPolicy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -15,6 +17,8 @@ import java.io.OutputStream;
  *
  */
 public class ADLFileOutputStream extends OutputStream {
+
+    private static final Logger log = LoggerFactory.getLogger("com.microsoft.azure.datalake.store.ADLFileOutputStream");
 
     private final String filename;
     private final AzureDataLakeStorageClient client;
@@ -35,6 +39,9 @@ public class ADLFileOutputStream extends OutputStream {
         this.client = client;
         this.isCreate = isCreate;
         created = !isCreate;          // for appends, created is already supposed to be true
+        if (log.isTraceEnabled()) {
+            log.trace("ADLFIleOutputStream created for client {} for file {}, create={}", client.getClientId(), filename, isCreate);
+        }
     }
 
     @Override
@@ -67,6 +74,10 @@ public class ADLFileOutputStream extends OutputStream {
 
         if (off > b.length || len > (b.length - off)) throw new IllegalArgumentException("array offset and length are > array size");
 
+        if (log.isTraceEnabled()) {
+            log.trace("Stream write of size {} for client {} for file {}", len, client.getClientId(), filename);
+        }
+
         // if len > 4MB, then we force-break the write into 4MB chunks
         while (len > blocksize) {
             flush(); // flush first, because we want to preserve record boundary of last append
@@ -98,10 +109,13 @@ public class ADLFileOutputStream extends OutputStream {
     @Override
     public void flush() throws IOException {
         if (streamClosed) throw new IOException("attempting to flush a closed stream;");
-        if (!created && isCreate) {   // actually, checking just !created would suffice; but leaving isCreated for readability
+        if (!created && isCreate) {   // actually, checking just !created would suffice; but leaving isCreate for readability
             RequestOptions opts = new RequestOptions();
             opts.retryPolicy = new NoRetryPolicy();
             OperationResponse resp = new OperationResponse();
+            if (log.isTraceEnabled()) {
+                log.trace("create file with data size {} for client {} for file {}", cursor, client.getClientId(), filename);
+            }
             Core.create(filename, overwrite, buffer, 0, cursor, client, opts, resp);
             if (!resp.successful) {
                 throw Core.getExceptionFromResp(resp, "Error creating file " + filename);
@@ -111,6 +125,9 @@ public class ADLFileOutputStream extends OutputStream {
             RequestOptions opts = new RequestOptions();
             opts.retryPolicy = new NoRetryPolicy();
             OperationResponse resp = new OperationResponse();
+            if (log.isTraceEnabled()) {
+                log.trace("append to file with data size {} for client {} for file {}", cursor, client.getClientId(), filename);
+            }
             Core.append(filename, buffer, 0, cursor, client, opts, resp);
             if (!resp.successful) {
                 throw Core.getExceptionFromResp(resp, "Error appending to file " + filename);
@@ -121,7 +138,11 @@ public class ADLFileOutputStream extends OutputStream {
 
     @Override
     public void close() throws IOException {
+        if(streamClosed) return; // Return silently upon multiple closes
         flush();
         streamClosed = true;
+        if (log.isTraceEnabled()) {
+            log.trace("Stream closed for client {} for file {}", client.getClientId(), filename);
+        }
     }
 }

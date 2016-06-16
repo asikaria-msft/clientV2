@@ -4,6 +4,8 @@ import com.microsoft.azure.datalake.store.protocol.Core;
 import com.microsoft.azure.datalake.store.protocol.OperationResponse;
 import com.microsoft.azure.datalake.store.protocol.RequestOptions;
 import com.microsoft.azure.datalake.store.retrypolicies.ExponentialOnThrottlePolicy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,10 +25,12 @@ public class ADLFileInputStream extends InputStream {
      - PositionedReadable: can be done in the shim, using Core.open directly
      - ByteBufferReadable: can be done in the shim, using Core.open directly
      - HasFileDescriptor: seems orthogonal to this class's functionality
-     - CanSetDropBehing: seems like a synonym of the unbuffer() method (already implemented in this class)
+     - CanSetDropBehind: seems like a synonym of the unbuffer() method (already implemented in this class)
      - HasEnhancedByteBufferAccess: Not sure why this even is in the FSDataInputStream - seems orthogonal
      - CanSetReadahead/CanSetDropbehind - not that hard to do, but not sure who uses it. Will do if needed.
      */
+
+    private static final Logger log = LoggerFactory.getLogger("com.microsoft.azure.datalake.store.ADLFileInputStream");
 
     private final String filename;
     private final AzureDataLakeStorageClient client;
@@ -42,6 +46,10 @@ public class ADLFileInputStream extends InputStream {
 
     protected long readFromService(long len) throws ADLException {
         if (bCursor < limit) return 0; //if there's still unread data in the buffer then dont overwrite it
+
+        if (log.isTraceEnabled()) {
+            log.trace("read from server at offset {} using client {} from file {}", getPos(), client.getClientId(), filename);
+        }
 
         //reset buffer to initial state - i.e., throw away existing data
         bCursor = 0;
@@ -82,6 +90,9 @@ public class ADLFileInputStream extends InputStream {
         super();
         this.filename = filename;
         this.client = client;
+        if (log.isTraceEnabled()) {
+            log.trace("ADLFIleInputStream created for client {} for file {}", client.getClientId(), filename);
+        }
     }
 
     @Override
@@ -110,6 +121,9 @@ public class ADLFileInputStream extends InputStream {
         if (off < 0 || len < 0 || len > b.length - off) {
             throw new IndexOutOfBoundsException();
         }
+        if (log.isTraceEnabled()) {
+            log.trace("read at offset {} size {} using client {} from file {}", getPos(), len, client.getClientId(), filename);
+        }
 
         if (len == 0) {
             return 0;
@@ -130,12 +144,26 @@ public class ADLFileInputStream extends InputStream {
         return bytesToRead;
     }
 
+    public long seek(long n) throws IOException {
+        if (log.isTraceEnabled()) {
+            log.trace("begin seek to offset {} using client {} from file {}", n, client.getClientId(), filename);
+        }
+        long skiplength = n - getPos();
+        skip(skiplength);
+        return getPos();
+    }
+
+
     @Override
     public long skip(long n) throws IOException {
         if (streamClosed) throw new IOException("attempting to read from a closed stream;");
         if (n==0) return 0;
         if (n < -(fCursor+bCursor)) throw new IllegalArgumentException("Cannot seek past beginning of file");
         // cannot do corresponding check for end of file, because we dont know length without doing a server call
+
+        if (log.isTraceEnabled()) {
+            log.trace("begin skip by {} using client {} from file {}", n, client.getClientId(), filename);
+        }
 
         if (n<0) {
             int max = -(limit-bCursor); // max distance we can go back within buffer
@@ -159,7 +187,7 @@ public class ADLFileInputStream extends InputStream {
             long oldFCursor = fCursor;
             limit=0;
             bCursor = 0;
-            fCursor = fCursor + bCursor + n; // n is -ve
+            fCursor = fCursor + bCursor + n;
             if (readFromService(blocksize)<0)
             {   // past end of file. restore state and report zero movement
                 limit = oldLimit;
@@ -186,9 +214,9 @@ public class ADLFileInputStream extends InputStream {
     /**
      * gets the position of the cursor within the file
      * @return position of the cursor
-     * @throws IOException throws {@link ADLException} if call fails
+     * @throws ADLException throws {@link ADLException} if call fails
      */
-    long getPos() throws IOException {
+    long getPos() throws ADLException {
         return fCursor + bCursor;
     }
 
@@ -196,6 +224,9 @@ public class ADLFileInputStream extends InputStream {
      * invalidates the buffer. The next read will fetch data from server.
      */
     public void unbuffer() {
+        if (log.isTraceEnabled()) {
+            log.trace("ADLInput Stream cleared buffer for client {} for file {}", client.getClientId(), filename);
+        }
         limit = 0;
         bCursor = 0;
     }
@@ -203,13 +234,23 @@ public class ADLFileInputStream extends InputStream {
     @Override
     public void close() throws IOException {
         streamClosed = true;
+        if (log.isTraceEnabled()) {
+            log.trace("ADLInput Stream closed for client {} for file {}", client.getClientId(), filename);
+        }
     }
 
+    /**
+     * Not supported by this stream. Throws {@link UnsupportedOperationException}
+     * @param readlimit ignored
+     */
     @Override
     public synchronized void mark(int readlimit) {
       throw new UnsupportedOperationException("mark()/reset() not supported on this stream");
     }
 
+    /**
+     * Not supported by this stream. Throws {@link UnsupportedOperationException}
+     */
     @Override
     public synchronized void reset() throws IOException {
         throw new UnsupportedOperationException("mark()/reset() not supported on this stream");

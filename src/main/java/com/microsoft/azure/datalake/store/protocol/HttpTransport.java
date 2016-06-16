@@ -13,6 +13,9 @@ import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
  *
@@ -27,6 +30,7 @@ import java.util.UUID;
 class HttpTransport {
 
     private static final String API_VERSION = "2015-10-01-preview"; // API version used in REST requests
+    private static final Logger log = LoggerFactory.getLogger("com.microsoft.azure.datalake.store"); // package-default logging policy
 
     /**
      * calls {@link #makeSingleCall(AzureDataLakeStorageClient, Operation, String, QueryParams, byte[], int, int, RequestOptions, OperationResponse) makeSingleCall}
@@ -57,12 +61,17 @@ class HttpTransport {
         if (opts.retryPolicy == null) {
             opts.retryPolicy = new NoRetryPolicy();
         }
+
+        String clientRequestId;
         if (opts.requestid == null) {
-            opts.requestid = UUID.randomUUID().toString();
+            clientRequestId = UUID.randomUUID().toString();
+        } else {
+            clientRequestId = opts.requestid;
         }
 
         int retryCount = 0;
         do {
+            opts.requestid = clientRequestId + "." + Integer.toString(retryCount);
             long start = System.nanoTime();
             makeSingleCall(client, op, path, queryParams, requestBody, offsetWithinContentsArray, length, opts, resp);
             resp.lastCallLatency = System.nanoTime() - start;
@@ -70,6 +79,16 @@ class HttpTransport {
             if (isSuccessfulResponse(resp, op)) {
                 resp.successful = true;
                 LatencyTracker.addLatency(opts.requestid, retryCount, resp.lastCallLatency, op.name, length + resp.responseContentLength);
+                if (log.isInfoEnabled()) {
+                    String logline = "HTTPRequest,Succeeded," +
+                                     opts.requestid + "," +
+                                     Integer.toString(retryCount) + "," +
+                                     Long.toString(resp.lastCallLatency) + ",," +
+                                     op.name + "," +
+                                     Long.toString(resp.responseContentLength) + "," +
+                                     resp.requestId;
+                    log.info(logline);
+                }
                 return;
             } else {
                 resp.successful = false;
@@ -79,7 +98,18 @@ class HttpTransport {
                 } else {
                     error = "HTTP" + resp.httpResponseCode;
                 }
-                LatencyTracker.addError(opts.requestid, retryCount, error, op.name, length);
+                LatencyTracker.addError(opts.requestid, retryCount, resp.lastCallLatency, error, op.name, length);
+                if (log.isInfoEnabled()) {
+                    String logline = "HTTPRequest,Failed," +
+                            opts.requestid + "," +
+                            Integer.toString(retryCount) + "," +
+                            Long.toString(resp.lastCallLatency) + "," +
+                            error + "," +
+                            op.name + "," +
+                            Long.toString(resp.responseContentLength) + "," +
+                            resp.requestId;
+                    log.info(logline);
+                }
                 retryCount++;
             }
         } while (opts.retryPolicy.shouldRetry(resp.httpResponseCode, resp.ex));
@@ -167,7 +197,7 @@ class HttpTransport {
 
         try {
             // URL encode, but keep the "/" characters
-            urlString.append(URLEncoder.encode(path, "UTF-8").replace("%2F", "/").replace("%2f", "/"));
+            urlString.append(URLEncoder.encode(path, "UTF-8").replace("%2F", "/").replace("%2f", "/").replace("+", "%20"));
         } catch (UnsupportedEncodingException ex) {}
         urlString.append('?');
 
@@ -238,8 +268,7 @@ class HttpTransport {
     private static void getCodesFromJSon(InputStream s, OperationResponse resp) {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode rootNode = mapper.readTree(resp.responseStream);
-
+            JsonNode rootNode = mapper.readTree(s);
             JsonNode remoteExceptionNode = rootNode.path("RemoteException");
             resp.remoteExceptionName = remoteExceptionNode.path("exception").asText();
             resp.remoteExceptionMessage = remoteExceptionNode.path("message").asText();
