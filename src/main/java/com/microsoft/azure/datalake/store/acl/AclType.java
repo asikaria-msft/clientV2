@@ -7,6 +7,9 @@
 package com.microsoft.azure.datalake.store.acl;
 
 
+/**
+ * Type of Acl entry (user, group, other, or mask).
+ */
 public enum AclType {
     USER,
     GROUP,

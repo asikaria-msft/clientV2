@@ -6,6 +6,10 @@
 
 package com.microsoft.azure.datalake.store.acl;
 
+/**
+ * Specifies the possible combinations of actions allowed in an ACL.
+ *
+ */
 public enum AclAction {
     NONE          ("---"),
     EXECUTE       ("--x"),

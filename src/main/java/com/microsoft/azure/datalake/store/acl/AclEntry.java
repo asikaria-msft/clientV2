@@ -9,10 +9,45 @@ package com.microsoft.azure.datalake.store.acl;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Contains one ACL entry. An ACL entry consists of a scope (access or default),
+ * the type of the ACL (user, group, other or mask), the name of the user or group
+ * associated with this ACL (can be blank to specify the default permissions for
+ * users and groups, and must be blank for mask entries), and the action permitted
+ * by this ACL entry.
+ * <P>
+ * An ACL for an object consists of a {@code List} of Acl entries.
+ * </P>
+ * <p>
+ * This class also provides a number of convenience methods for converting ACL entries
+ * and ACLs to and back from strings.
+ *  </P>
+ */
 public class AclEntry {
+    /**
+     * {@link AclScope} specifying scope of the Acl entry (access or default)
+     */
     public AclScope scope;
+
+    /**
+     * {@link AclType} specifying the type of the Acl entry (user, group, other or mask)
+     */
     public AclType type;
+
+    /**
+     * String specifying the name of the user or group associated with this Acl entry. Can be
+     * blank to specify the default permissions for users and groups, and must be blank
+     * for mask entries.
+     */
     public String name;
+
+
+    /**
+     * {@link AclAction} enum specifying the action permitted  by this Acl entry. Has
+     * convenience methods to create value from unix-style permission string (e.g.,
+     * {@code AclAction.fromRwx("rw-")}), or from unix Octal permission (e.g.,
+     * {@code AclAction.fromOctal(6)}).
+     */
     public AclAction action;
 
     public AclEntry() {

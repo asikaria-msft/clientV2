@@ -7,6 +7,9 @@
 package com.microsoft.azure.datalake.store.acl;
 
 
+/**
+ * The scope of an ACL Entry (access or default).
+ */
 public enum AclScope {
     ACCESS,
     DEFAULT
