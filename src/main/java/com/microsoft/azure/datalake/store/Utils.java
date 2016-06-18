@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ * See License.txt in the project root for license information.
+ */
+
 package com.microsoft.azure.datalake.store;
 
 import com.microsoft.azure.datalake.store.protocol.Core;
@@ -99,12 +105,15 @@ public class Utils {
 
     /**
      * Does an atomic append to the file - the append either succeeds fully, or fails
-     * fully - the contents are not partially appended.
+     * fully - the contents are not partially appended. The offset to append at
+     * is determined by the server.
+     *
      *
      * @param filename name of file to append to
      * @param bytesToAppend
-     *          the byte buffer to append. Max buffer size can be 4MB.
-     * @return returns true on success
+     *          the byte buffer to append. Max buffer size can be 4MB (4*1024*1024).
+     * @throws ADLException thrown if there is an error in upload
+     * @throws IllegalArgumentException thrown if the buffer provided is larger than 4MB, or input filename is null
      */
     public void appendBytes(String filename, byte[] bytesToAppend) throws IllegalArgumentException, ADLException {
         if (filename == null || filename.trim().equals(""))

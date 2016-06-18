@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ * See License.txt in the project root for license information.
+ */
+
 package com.microsoft.azure.datalake.store;
 
 
@@ -24,9 +30,21 @@ public class AzureDataLakeStorageClient {
     private final String accountFQDN;
     private String accessToken;
     private String userAgentSuffix;
+    private String userAgentString;
     private static final Logger log = LoggerFactory.getLogger("com.microsoft.azure.datalake.store"); // package-default logging policy
     private static final AtomicLong clientIdCounter = new AtomicLong(0);
     private final long clientId;
+
+    private static String userAgent =
+            String.format("%s.%s/%s-%s/%s/%s-%s",
+                    "ADLSJavaSDK",
+                    AzureDataLakeStorageClient.class.getPackage().getImplementationVersion(), // SDK Version
+                    System.getProperty("os.name").replaceAll(" ", ""),
+                    System.getProperty("os.version"),
+                    System.getProperty("os.arch"),
+                    System.getProperty("java.vendor").replaceAll(" ", ""),
+                    System.getProperty("java.version")
+            );
 
 
     /**
@@ -44,7 +62,8 @@ public class AzureDataLakeStorageClient {
         this.accountFQDN = accountFQDN;
         this.accessToken = "Bearer " + accessToken;
         this.clientId = clientId;
-        utils = new Utils(this);
+        this.utils = new Utils(this);
+        this.userAgentString = userAgent;
     }
 
     /**
@@ -180,6 +199,17 @@ public class AzureDataLakeStorageClient {
         return userAgentSuffix;
     }
 
+
+
+    /**
+     * Gets a unique long associated with this instance of {@code AzureDataLakeStorageClient}
+     *
+     * @return a unique long associated with this instance of {@code AzureDataLakeStorageClient}
+     */
+    public long getClientId() {
+        return this.clientId;
+    }
+
     /**
      * sets the user agent suffix to be added to the User-Agent header in all HTTP requests made to the server.
      * This suffix is appended to the end of the User-Agent string constructed by the SDK.
@@ -187,11 +217,19 @@ public class AzureDataLakeStorageClient {
      * @param userAgentSuffix the suffix
      */
     public synchronized void setUserAgentSuffix(String userAgentSuffix) {
-        this.userAgentSuffix = userAgentSuffix;
+        if (userAgentSuffix != null && !userAgentSuffix.trim().equals("")) {
+            this.userAgentString = userAgent + "/" + userAgentSuffix;
+        }
     }
 
-    public long getClientId() {
-        return this.clientId;
+    /**
+     * Gets the HTTP User-Agent string that will be used for requests made from this client.
+     * @return User-Agent string
+     */
+    public String getUserAgent() {
+        return userAgentString;
     }
+
+
 
 }

@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ * See License.txt in the project root for license information.
+ */
+
 package com.microsoft.azure.datalake.store.protocol;
 
 import java.util.concurrent.ArrayBlockingQueue;
@@ -14,7 +20,6 @@ import java.util.concurrent.ArrayBlockingQueue;
  * Contents of data reported back:
  * <UL>
  * <LI>Client Request ID of last request</LI>
- * <LI>Retry Number</LI>
  * <LI>latency in milliseconds</LI>
  * <LI>error code (if request failed)</LI>
  * <LI>Operation</LI>
@@ -28,12 +33,11 @@ public class LatencyTracker {
      Schema:
      Single entry, comma separated:
       1. Client Request ID
-      2. Retry Number
-      3. latency in milliseconds
-      4. error code (if request failed)
-      5. Operation
-      6. Request+response body Size (if available, zero otherwise)
-      7. Instance of AzureDataLakeStorageClient (a unique number per instance in this VM)
+      2. latency in milliseconds
+      3. error code (if request failed)
+      4. Operation
+      5. Request+response body Size (if available, zero otherwise)
+      6. Instance of AzureDataLakeStorageClient (a unique number per instance in this VM)
 
      Multiple entries can be on a single request. Entries will be separated by semicolons
      Limit max entries on a single request to three, to limit increase in HTTP request size.
@@ -67,15 +71,13 @@ public class LatencyTracker {
 
     static void addLatency(String clientRequestId, int retryNum, long latency, String operation, long size, long clientId) {
         if (disabled) return;
-        latency = latency / 1000000;  // convert nanoseconds to milliseconds
-        String line = String.format("%s,%d,%d,,%s,%d,%d", clientRequestId, retryNum, latency, operation, size, clientId);
+        String line = String.format("%s.%d,%d,,%s,%d,%d", clientRequestId, retryNum, latency, operation, size, clientId);
         Q.offer(line); // non-blocking append. If queue is full then silently discard
     }
 
     static void addError(String clientRequestId, int retryNum, long latency, String error, String operation, long size, long clientId) {
         if (disabled) return;
-        latency = latency / 1000000; // convert nanoseconds to milliseconds
-        String line = String.format("%s,%d,%d,%s,%s,%d,%d", clientRequestId, retryNum, latency, error, operation, size, clientId);
+        String line = String.format("%s.%d,%d,%s,%s,%d,%d", clientRequestId, retryNum, latency, error, operation, size, clientId);
         Q.offer(line); // non-blocking append. If queue is full then silently discard
     }
 

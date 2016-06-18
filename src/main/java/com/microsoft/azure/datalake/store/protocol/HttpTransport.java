@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ * See License.txt in the project root for license information.
+ */
+
 package com.microsoft.azure.datalake.store.protocol;
 
 
@@ -75,6 +81,7 @@ class HttpTransport {
             long start = System.nanoTime();
             makeSingleCall(client, op, path, queryParams, requestBody, offsetWithinContentsArray, length, opts, resp);
             resp.lastCallLatency = System.nanoTime() - start;
+            resp.lastCallLatency = resp.lastCallLatency / 1000000;   // convert from nanoseconds to milliseconds
             resp.numRetries = retryCount;
             if (isSuccessfulResponse(resp, op)) {
                 resp.successful = true;
@@ -212,7 +219,7 @@ class HttpTransport {
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestProperty("Authorization", client.getAccessToken());
             // TODO: It is wasteful to recompute User-Agent on every call. Move it to adlclient and reuse same string from there
-            conn.setRequestProperty("User-Agent", getUserAgent(client.getUserAgentSuffix()));
+            conn.setRequestProperty("User-Agent", client.getUserAgent());
             conn.setRequestProperty("x-ms-client-request-id", opts.requestid);
             String latencyHeader = LatencyTracker.get();
             if (latencyHeader!=null) conn.setRequestProperty("x-ms-adl-client-latency", latencyHeader);
@@ -279,23 +286,5 @@ class HttpTransport {
     }
 
 
-    private static String userAgent =
-            String.format("%s-%s/%s-%s/%s/%s-%s",
-                    "ADLSJavaSDK",
-                    HttpTransport.class.getPackage().getImplementationVersion(), // SDK Version
-                    System.getProperty("os.name").replaceAll(" ", ""),
-                    System.getProperty("os.version"),
-                    System.getProperty("os.arch"),
-                    System.getProperty("java.vendor").replaceAll(" ", ""),
-                    System.getProperty("java.version")
-            );
 
-    private static String getUserAgent(String customSuffix) {
-
-        if (customSuffix != null && !customSuffix.trim().equals("")) {
-            return userAgent + " / " + customSuffix;
-        } else {
-            return userAgent;
-        }
-    }
 }

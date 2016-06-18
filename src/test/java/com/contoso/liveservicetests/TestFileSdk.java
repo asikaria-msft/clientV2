@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ * See License.txt in the project root for license information.
+ */
+
 package com.contoso.liveservicetests;
 
 import com.microsoft.azure.datalake.store.*;
@@ -67,7 +73,7 @@ public class TestFileSdk {
 
     @Test
     public void smallFileNoOverwrite() throws IOException {
-        Assume.assumeTrue(testsEnabled);
+        Assume.assumeTrue(true);
         String filename = directory + "/" + "Sdk.smallFileNoOverwrite.txt";
 
         // write some text to file
