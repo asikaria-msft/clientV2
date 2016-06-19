@@ -48,11 +48,11 @@ public class ADLFileInfo {
         return new ADLFileOutputStream(filename, client, false, false);
     }
 
-    public boolean concatenateFiles(List<String> fileList, boolean deleteSourceDirectory) throws ADLException {
+    public boolean concatenateFiles(List<String> fileList) throws ADLException {
         RequestOptions opts = new RequestOptions();
         opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
-        Core.concat(filename, fileList, deleteSourceDirectory, client, opts, resp);
+        Core.concat(filename, fileList, client, opts, resp);
         if (!resp.successful) {
             throw Core.getExceptionFromResp(resp, "Error concatenating files into " + filename);
         }

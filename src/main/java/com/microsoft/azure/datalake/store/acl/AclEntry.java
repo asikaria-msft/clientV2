@@ -54,6 +54,13 @@ public class AclEntry {
 
     }
 
+    /**
+     * creates and Acl Entry from the supplied scope, type, name and action
+     * @param scope {@link AclScope} specifying scope of the Acl entry (access or default)
+     * @param type {@link AclType} specifying the type of the Acl entry (user, group, other or mask)
+     * @param name String specifying the name of the user or group associated with this Acl entry
+     * @param action {@link AclAction} specifying the action permitted  by this Acl entry
+     */
     public AclEntry(AclScope scope, AclType type, String name, AclAction action) {
         if (scope == null) throw new IllegalArgumentException("AclScope is null");
         if (type == null ) throw new IllegalArgumentException("AclType is null");
@@ -68,10 +75,33 @@ public class AclEntry {
         this.action = action;
     }
 
+    /**
+     * Parses an Acl entry from its posix string form. For example: {@code "default:user:bob:r-x"}
+     * @param entryString Acl entry string to parse
+     *
+     * @return {@link AclEntry} parsed from the string
+     *
+     * @throws IllegalArgumentException if the string is invalid
+     */
     public static AclEntry parseAclEntry(String entryString) throws IllegalArgumentException {
         return parseAclEntry(entryString, false);
     }
 
+    /**
+     * Parses a single Acl entry from its posix string form. For example: {@code "default:user:bob:r-x"}.
+     * <P>
+     * If the Acl string will be used to remove an existing acl from a file or folder, then the permission
+     * level does not need to be specified. Passing false to the {@code removeAcl} argument tells the parser
+     * to accept such strings.
+     * </P>
+     * @param entryString Acl entry string to parse
+     * @param removeAcl boolean specifying whether to parse this string like a remove Acl (that is, with
+     *                  permission optional)
+     *
+     * @return {@link AclEntry} parsed from the string
+     *
+     * @throws IllegalArgumentException if the string is invalid
+     */
     public static AclEntry parseAclEntry(String entryString, boolean removeAcl) throws IllegalArgumentException {
         if (entryString == null || entryString.equals("")) return null;
         AclEntry aclEntry = new AclEntry();
@@ -121,10 +151,27 @@ public class AclEntry {
         return aclEntry;
     }
 
+    /**
+     * Returns the posix string form of this acl entry. For example: {@code "default:user:bob:r-x"}.
+
+     *  @return the posix string form of this acl entry
+     */
     public String toString() {
         return this.toString(false);
     }
 
+    /**
+     * Returns the posix string form of this acl entry. For example: {@code "default:user:bob:r-x"}.
+     * <P>
+     * If the Acl string will be used to remove an existing acl from a file or folder, then the permission
+     * level does not need to be specified. Passing true to the {@code removeAcl} argument omits the permission
+     * level in the output string.
+     * </P>
+     *
+     * @param removeAcl passing true will result in an acl entry string with no permission specified
+     *
+     * @return the string form of the {@code AclEntry}
+     */
     public String toString(boolean removeAcl) {
         StringBuilder str = new StringBuilder();
         if (this.scope == null) throw new IllegalArgumentException("Acl Entry has no scope");
@@ -144,12 +191,20 @@ public class AclEntry {
         return str.toString();
     }
 
+    /**
+     * parses a posix acl spec string into a {@link List} of {@code AclEntry}s.
+     * @param aclString the acl spec string tp parse
+     *
+     * @return {@link List}{@code <AclEntry>} represented by the acl spec string
+     *
+     * @throws IllegalArgumentException
+     */
     public static List<AclEntry> parseAclSpec(String aclString) throws IllegalArgumentException {
         if (aclString == null || aclString.trim().equals("")) return new LinkedList<AclEntry>();
 
         aclString = aclString.trim();
-        String car,  // the first entry
-                cdr;  // the rest of the list fater first entry
+        String car,   // the first entry
+                cdr;  // the rest of the list after first entry
         int commaPos = aclString.indexOf(",");
         if (commaPos < 0) {
             car = aclString;
@@ -165,10 +220,29 @@ public class AclEntry {
         return aclSpec;
     }
 
+    /**
+     * converts a {@link List}{@code <AclEntry>} to its posix aclspec string form
+     * @param list {@link List}{@code <AclEntry>} to covert to string
+     *
+     * @return posix acl spec string
+     */
     public static String aclListToString(List<AclEntry> list) {
         return aclListToString(list, false);
     }
 
+    /**
+     * converts a {@link List}{@code <AclEntry>} to its posix aclspec string form.
+     * <P>
+     * If the aclspec string will be used to remove an existing acl from a file or folder, then the permission
+     * level does not need to be specified. Passing true to the {@code removeAcl} argument omits the permission
+     * level in the output string.
+     * </P>
+     *
+     * @param list {@link List}{@code <AclEntry>} to covert to string
+     * @param removeAcl removeAcl passing true will result in an aclspec with no permission specified
+     *
+     * @return posix acl spec string
+     */
     public static String aclListToString(List<AclEntry> list, boolean removeAcl) {
         if (list == null || list.size() == 0) return "";
         String separator = "";

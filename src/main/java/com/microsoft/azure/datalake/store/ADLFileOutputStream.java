@@ -19,7 +19,7 @@ import java.io.OutputStream;
 /**
  * {@code ADLFileOutputStream} is used to add data to an Azure Data Lake File.
  * It is a buffering stream that accumulates user writes, and then writes to the server
- * in chunks. Default chunk size if 4MB.
+ * in chunks. Default chunk size is 4MB.
  *
  */
 public class ADLFileOutputStream extends OutputStream {
