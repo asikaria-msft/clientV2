@@ -197,7 +197,6 @@ public class AclEntry {
      *
      * @return {@link List}{@code <AclEntry>} represented by the acl spec string
      *
-     * @throws IllegalArgumentException
      */
     public static List<AclEntry> parseAclSpec(String aclString) throws IllegalArgumentException {
         if (aclString == null || aclString.trim().equals("")) return new LinkedList<AclEntry>();

@@ -290,7 +290,7 @@ public class TestFileSdk {
         // concatenate single file
         ADLFileInfo fc = client.getFileInfo(fnc);
         List<String> flist = new ArrayList<String>(1);
-        fc.concatenateFiles(flist, false);
+        fc.concatenateFiles(flist);
 
         // read text from file
         System.out.format("reading %s%n", fnc);
@@ -324,7 +324,7 @@ public class TestFileSdk {
         ADLFileInfo f2 = client.getFileInfo(fn2);
         List<String> flist = new ArrayList<String>(1);
         flist.add(fn1);
-        f2.concatenateFiles(flist, false);
+        f2.concatenateFiles(flist);
 
         // read text from file
         System.out.format("reading %s%n", fn2);
@@ -360,7 +360,7 @@ public class TestFileSdk {
         ADLFileInfo f2 = client.getFileInfo(fn1);
         List<String> flist = new ArrayList<String>(1);
         flist.add(fn1);
-        f2.concatenateFiles(flist, false);
+        f2.concatenateFiles(flist);
 
         // read text from file
         System.out.format("reading %s%n", fn2);
@@ -412,7 +412,7 @@ public class TestFileSdk {
         List<String> flist = new ArrayList<String>(7);
         flist.add(fn1);
         flist.add(fn2);
-        fc.concatenateFiles(flist, false);
+        fc.concatenateFiles(flist);
 
         // read text from file
         System.out.format("reading %s%n", fnc);
@@ -472,7 +472,7 @@ public class TestFileSdk {
         flist.add(fn1);
         flist.add(fn2);
         flist.add(fn3);
-        fc.concatenateFiles(flist, false);
+        fc.concatenateFiles(flist);
 
         // read text from file
         System.out.format("reading %s%n", fnc);
