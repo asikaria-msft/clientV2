@@ -505,7 +505,8 @@ public class TestFileSdk {
         out.close();
 
         //rename file
-        f.rename(fnr);
+        boolean succeeded = f.rename(fnr);
+        assertTrue("rename should not return false", succeeded);
 
         // read text from file
         System.out.format("reading %s%n", filename);
@@ -538,7 +539,8 @@ public class TestFileSdk {
         out.close();
 
         //rename file
-        f.rename(fnr);
+        boolean succeeded = f.rename(fnr);
+        assertTrue("rename should not return false", succeeded);
 
         // open same file name as a different ADFIleInfo object and then read file
         System.out.format("reading %s%n", fnr);
@@ -558,17 +560,18 @@ public class TestFileSdk {
         assertTrue("file contents should match", Arrays.equals(contents, b2));
     }
 
-    @Test(expected = ADLException.class)
+    @Test
     public void renameNonExistentFile() throws ADLException {
         Assume.assumeTrue(testsEnabled);
         String filename = directory + "/" + "Sdk.renameNonExistentFile.txt";
         String fnr = directory + "/" + "Sdk.renameNonExistentFile-r.txt";
 
         ADLFileInfo f = client.getFileInfo(filename);
-        f.rename(fnr);  // <<-- Should FAIL
+        boolean succeeded = f.rename(fnr);
+        assertTrue("rename of non-existent file should return false", !succeeded);
     }
 
-    @Test(expected = ADLException.class)
+    @Test
     public void renameOntoSelf() throws IOException {
         Assume.assumeTrue(testsEnabled);
         String filename = directory + "/" + "Sdk.renameOntoSelf.txt";
@@ -580,16 +583,19 @@ public class TestFileSdk {
         out.write(contents);
         out.close();
 
-        f.rename(filename);  // <<-- Should FAIL
+        boolean succeeded = f.rename(filename);
+        assertTrue("rename should not return true", !succeeded);
+        //f.rename(filename);  // <<-- Should FAIL
     }
 
-    @Test(expected = ADLException.class)
+    @Test
     public void deleteNonExistentFile() throws ADLException {
         Assume.assumeTrue(testsEnabled);
         String filename = directory + "/" + "Sdk.deleteNonExistentFile.txt";
 
         ADLFileInfo f = client.getFileInfo(filename);
-        f.delete();
+        boolean succeeded = f.delete();
+        assertTrue("delete() should not return true on a non-existent file", !succeeded);
     }
 
     @Test
@@ -604,7 +610,8 @@ public class TestFileSdk {
         out.write(contents);
         out.close();
 
-        f.delete();
+        boolean succeeded = f.delete();
+        assertTrue("delete() should not return false on a file delete", succeeded);
     }
 
     @Test
@@ -660,7 +667,8 @@ public class TestFileSdk {
         ADLFileInfo d = client.getFileInfo(dirname);
         DirectoryEntry de;
 
-        d.createDirectory();
+        boolean succeeded = d.createDirectory();
+        assertTrue("Directory creation shoul dnot fail", succeeded);
 
         de = d.getDirectoryEntry();
         assertTrue("Directory fullname should match", de.fullName.equals(dirname));
@@ -702,7 +710,9 @@ public class TestFileSdk {
 
         String parentDir = dirname + "/a";
         ADLFileInfo pdir = client.getFileInfo(parentDir);
-        pdir.deleteDirectoryTree();
+        boolean succeeded = pdir.deleteDirectoryTree();
+        assertTrue("recursive delete should return true", succeeded);
+
 
         try {
             ADLFileInfo d = client.getFileInfo(parentDir);
@@ -713,7 +723,7 @@ public class TestFileSdk {
         }
     }
 
-    @Test
+    @Test(expected = ADLException.class)
     public void deleteDirectoryNonRecursive() throws IOException {
         Assume.assumeTrue(testsEnabled);
         String dirname = directory + "/" + "deleteDirectoryNonRecursive";
@@ -735,12 +745,6 @@ public class TestFileSdk {
         String parentDir = dirname + "/a";
         ADLFileInfo pdir = client.getFileInfo(parentDir);
 
-        try {
-            pdir.delete();
-            assertTrue("Non-recursive delete should fail on a non-empty directory tree", false);
-        } catch (ADLException ex) {
-        }
+        pdir.delete();
     }
-
-
 }

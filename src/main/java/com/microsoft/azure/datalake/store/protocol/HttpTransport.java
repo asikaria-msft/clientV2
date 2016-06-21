@@ -196,7 +196,8 @@ class HttpTransport {
 
         // Build URL
         StringBuilder urlString = new StringBuilder();
-        urlString.append("https://");
+        urlString.append(client.getHttpPrefix());
+        urlString.append("://");
         urlString.append(client.getAccountName());
         if (op.isExt) {
             urlString.append("/WebHdfsExt");

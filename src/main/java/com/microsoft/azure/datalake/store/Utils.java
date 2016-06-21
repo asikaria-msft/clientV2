@@ -31,6 +31,13 @@ public class Utils {
     }
 
 
+    /**
+     * Check that a file or directory exists.
+     *
+     * @param filename path to check
+     * @return true if the path exists, false otherwise
+     * @throws ADLException thrown on error
+     */
     public boolean checkExists(String filename) throws ADLException {
         if (filename == null || filename.trim().equals(""))
             throw new IllegalArgumentException("filename cannot be null");
@@ -45,23 +52,47 @@ public class Utils {
         return true;
     }
 
+    /**
+     * Creates a directory.
+     *
+     * @param directoryName name of the directory to create.
+     * @throws ADLException thrown on error
+     */
     public void createDirectory(String directoryName) throws ADLException {
         if (directoryName == null || directoryName.trim().equals(""))
             throw new IllegalArgumentException("directory name cannot be null");
 
         ADLFileInfo di = client.getFileInfo(directoryName);
-        di.createDirectory();
+        boolean succeeded = di.createDirectory();
+        if (!succeeded) {
+            OperationResponse resp = new OperationResponse();
+            throw Core.getExceptionFromResp(resp, "Error creating directory " + directoryName);
+        }
     }
 
-    public void createEmptyFile(String filename, boolean overwriteIfExists) throws IOException {
+    /**
+     * Creates an empty file.
+     *
+     * @param filename name of file to create.
+     * @throws IOException thrown on error
+     */
+    public void createEmptyFile(String filename) throws IOException {
         if (filename == null || filename.trim().equals(""))
             throw new IllegalArgumentException("filename cannot be null");
 
         ADLFileInfo fi = client.getFileInfo(filename);
-        OutputStream out = fi.createFromStream(overwriteIfExists);
+        OutputStream out = fi.createFromStream(false);
         out.close();
     }
 
+    /**
+     * Uploads the contents of a local file to an Azure Data Lake file.
+     *
+     * @param filename path of file to upload to
+     * @param localFilename path to local file
+     * @param overwriteIfExists overwrite destination file if it already exists
+     * @throws IOException thrown on error
+     */
     public void upload(String filename, String localFilename, boolean overwriteIfExists) throws IOException  {
         if (localFilename == null || localFilename.trim().equals(""))
             throw new IllegalArgumentException("localFilename cannot be null");
@@ -70,6 +101,14 @@ public class Utils {
         upload(filename, in, overwriteIfExists);
     }
 
+    /**
+     * Uploads an {@link InputStream} to an Azure Data Lake file.
+     *
+     * @param filename path of file to upload to
+     * @param in {@link InputStream} whose contents will be uploaded
+     * @param overwriteIfExists overwrite destination file if it already exists
+     * @throws IOException thrown on error
+     */
     public void upload(String filename, InputStream in, boolean overwriteIfExists) throws IOException {
         if (filename == null || filename.trim().equals(""))
             throw new IllegalArgumentException("filename cannot be null");

@@ -33,6 +33,7 @@ public class AzureDataLakeStorageClient {
     private static final Logger log = LoggerFactory.getLogger("com.microsoft.azure.datalake.store"); // package-default logging policy
     private static final AtomicLong clientIdCounter = new AtomicLong(0);
     private final long clientId;
+    private String proto = "https";
 
     private static String userAgent =
             String.format("%s.%s/%s-%s/%s/%s-%s",
@@ -172,7 +173,6 @@ public class AzureDataLakeStorageClient {
         return accessToken;
     }
 
-
     /**
      * returns the user agent suffix to be added to the User-Agent header in all HTTP requests made to the server.
      * This suffix is appended to the end of the User-Agent string constructed by the SDK.
@@ -181,8 +181,6 @@ public class AzureDataLakeStorageClient {
     public String getUserAgentSuffix() {
         return userAgentSuffix;
     }
-
-
 
     /**
      * Gets a unique long associated with this instance of {@code AzureDataLakeStorageClient}
@@ -213,6 +211,26 @@ public class AzureDataLakeStorageClient {
         return userAgentString;
     }
 
+    /**
+     * Use http as transport for back-end calls, instead of https. This is to allow unit
+     * testing using mock or fake web servers.
+     * <P>
+     * <B>Warning: Do not</B> use this for talking to real Azure Data Lake service,
+     * since https is the only supported protocol on the server.
+     * </P>
+     */
+    public void setInsecureTransport() {
+        proto = "http";
+    }
+
+    /**
+     * get the http prefix ({@code http} or {@code https}) that will be used for
+     * connections used by thei client.
+     * @return Sytring containing the HTTP protocol used ({@code http} or {@code https})
+     */
+    public String getHttpPrefix() {
+        return proto;
+    }
 
 
 }
