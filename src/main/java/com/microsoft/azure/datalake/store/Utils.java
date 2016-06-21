@@ -9,11 +9,9 @@ package com.microsoft.azure.datalake.store;
 import com.microsoft.azure.datalake.store.protocol.Core;
 import com.microsoft.azure.datalake.store.protocol.OperationResponse;
 import com.microsoft.azure.datalake.store.protocol.RequestOptions;
-import com.microsoft.azure.datalake.store.retrypolicies.ExponentialOnThrottlePolicy;
 import com.microsoft.azure.datalake.store.retrypolicies.NoRetryPolicy;
 
 import java.io.*;
-import java.net.URI;
 
 /**
  * Utility methods to enable one-liners for simple functionality.
@@ -32,21 +30,8 @@ public class Utils {
         this.client = client;
     }
 
-    public boolean checkDirectoryExists(String directoryName) throws ADLException {
-        if (directoryName == null || directoryName.trim().equals(""))
-            throw new IllegalArgumentException("directory name cannot be null");
 
-        ADLDirectoryInfo di = client.getDirectoryInfo(directoryName);
-        try {
-            di.getDirectoryEntry();
-        } catch (ADLException ex) {
-            if (ex.httpResponseCode == 404) return false;
-            else throw ex;
-        }
-        return true;
-    }
-
-    public boolean checkFileExists(String filename) throws ADLException {
+    public boolean checkExists(String filename) throws ADLException {
         if (filename == null || filename.trim().equals(""))
             throw new IllegalArgumentException("filename cannot be null");
 
@@ -64,8 +49,8 @@ public class Utils {
         if (directoryName == null || directoryName.trim().equals(""))
             throw new IllegalArgumentException("directory name cannot be null");
 
-        ADLDirectoryInfo di = client.getDirectoryInfo(directoryName);
-        di.create();
+        ADLFileInfo di = client.getFileInfo(directoryName);
+        di.createDirectory();
     }
 
     public void createEmptyFile(String filename, boolean overwriteIfExists) throws IOException {

@@ -657,10 +657,10 @@ public class TestFileSdk {
         Assume.assumeTrue(testsEnabled);
         String dirname = directory + "/" + "getDirectoryEntryforDirectory/a/b/c";
 
-        ADLDirectoryInfo d = client.getDirectoryInfo(dirname);
+        ADLFileInfo d = client.getFileInfo(dirname);
         DirectoryEntry de;
 
-        d.create();
+        d.createDirectory();
 
         de = d.getDirectoryEntry();
         assertTrue("Directory fullname should match", de.fullName.equals(dirname));
@@ -701,11 +701,11 @@ public class TestFileSdk {
         out.close();
 
         String parentDir = dirname + "/a";
-        ADLDirectoryInfo pdir = client.getDirectoryInfo(parentDir);
-        pdir.delete(true);
+        ADLFileInfo pdir = client.getFileInfo(parentDir);
+        pdir.deleteDirectoryTree();
 
         try {
-            ADLDirectoryInfo d = client.getDirectoryInfo(parentDir);
+            ADLFileInfo d = client.getFileInfo(parentDir);
             d.getDirectoryEntry();
             assertTrue("getDirectoryEntry should fail on a deleted directory", false);
         } catch (ADLException ex) {
@@ -733,10 +733,10 @@ public class TestFileSdk {
         out.close();
 
         String parentDir = dirname + "/a";
-        ADLDirectoryInfo pdir = client.getDirectoryInfo(parentDir);
+        ADLFileInfo pdir = client.getFileInfo(parentDir);
 
         try {
-            pdir.delete(false);
+            pdir.delete();
             assertTrue("Non-recursive delete should fail on a non-empty directory tree", false);
         } catch (ADLException ex) {
         }

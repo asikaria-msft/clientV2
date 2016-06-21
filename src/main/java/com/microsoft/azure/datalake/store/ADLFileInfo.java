@@ -36,6 +36,12 @@ public class ADLFileInfo {
         this.filename = filename;
     }
 
+    /*
+    *
+    * Methods that apply to Files only
+    *
+    */
+
     public ADLFileOutputStream createFromStream(boolean overwriteIfExists) {
         return new ADLFileOutputStream(filename, client, true, overwriteIfExists);
     }
@@ -58,6 +64,76 @@ public class ADLFileInfo {
         }
         return true;
     }
+
+    /*
+    *
+    * Methods that apply to Directories only
+    *
+    */
+
+    public List<DirectoryEntry> enumerateDirectory(int maxEntriesToRetrieve) throws ADLException  {
+        return enumerateDirectory(maxEntriesToRetrieve, null, null);
+    }
+
+    public List<DirectoryEntry> enumerateDirectory(String startAfter) throws ADLException  {
+        return enumerateDirectory(0, startAfter, null);
+    }
+
+    public List<DirectoryEntry> enumerateDirectory(int maxEntriesToRetrieve, String startAfter) throws ADLException  {
+        return enumerateDirectory(maxEntriesToRetrieve, startAfter, null);
+    }
+
+    public List<DirectoryEntry> enumerateDirectory(String startAfter, String endBefore) throws ADLException  {
+        return enumerateDirectory(0, startAfter, endBefore);
+    }
+
+    public List<DirectoryEntry> enumerateDirectory(int maxEntriesToRetrieve, String startAfter, String endBefore) throws ADLException {
+        RequestOptions opts = new RequestOptions();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
+        OperationResponse resp = new OperationResponse();
+        List<DirectoryEntry> dirEnt  = Core.listStatus(filename, startAfter, endBefore, maxEntriesToRetrieve, client, opts, resp);
+        if (!resp.successful) {
+            throw Core.getExceptionFromResp(resp, "Error enumerating directory " + filename);
+        }
+        return dirEnt;
+    }
+
+    public void createDirectory() throws ADLException  {
+        RequestOptions opts = new RequestOptions();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
+        OperationResponse resp = new OperationResponse();
+        boolean succeeded = Core.mkdirs(filename, client, opts, resp);
+        if (!resp.successful || !succeeded) {
+            throw Core.getExceptionFromResp(resp, "Error creating directory " + filename);
+        }
+    }
+
+    public void deleteDirectoryTree() throws ADLException {
+        RequestOptions opts = new RequestOptions();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
+        OperationResponse resp = new OperationResponse();
+        boolean succeeded = Core.delete(filename, true, client, opts, resp);
+        if (!resp.successful || !succeeded) {
+            throw Core.getExceptionFromResp(resp, "Error deleting directory tree " + filename);
+        }
+    }
+
+    public void removeDefaultAcls() throws ADLException {
+        RequestOptions opts = new RequestOptions();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
+        OperationResponse resp = new OperationResponse();
+        Core.removeDefaultAcl(filename, client, opts, resp);
+        if (!resp.successful) {
+            throw Core.getExceptionFromResp(resp, "Error removing default ACLs for directory " + filename);
+        }
+    }
+
+
+    /*
+    *
+    * Methods that apply to both Files and Directoties
+    *
+    */
 
     public void rename(String newName) throws ADLException {
         RequestOptions opts = new RequestOptions();

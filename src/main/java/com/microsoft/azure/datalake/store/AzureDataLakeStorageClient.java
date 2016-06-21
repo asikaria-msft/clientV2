@@ -16,12 +16,11 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * {@code AzureDataLakeStorageClient} class represents a client to Azure Data Lake. It can be used to obtain references
- * to files and directories, which can be operated upon using the returned {@link ADLFileInfo} or {@link ADLDirectoryInfo} objects.
+ * to files and directories, which can be operated upon using the returned {@link ADLFileInfo} objects.
  * <P>
  * {@code AzureDataLakeStorageClient} class also has a {@link Utils utils} member that can be used to perform many operations
- * as simple one-liners. The same operations can also be performed using the {@link ADLFileInfo} or
- * {@link ADLDirectoryInfo} objects returned from {@link #getFileInfo(String) getFileInfo} or
- * {@link #getDirectoryInfo(String) getDirectoryInfo} calls.
+ * as simple one-liners. The same operations can also be performed using the {@link ADLFileInfo} object returned from
+ * {@link #getFileInfo(String) getFileInfo} calls.
  * </P>
  *
  */
@@ -49,10 +48,8 @@ public class AzureDataLakeStorageClient {
 
     /**
      * {@link Utils utils} member that can be used to perform many operations
-     * as simple one-liners. The same operations can also be performed using the {@link ADLFileInfo} or
-     * {@link ADLDirectoryInfo} objects returned from {@link #getFileInfo(String) getFileInfo} or
-     * {@link #getDirectoryInfo(String) getDirectoryInfo} calls.
-     *
+     * as simple one-liners. The same operations can also be performed using the {@link ADLFileInfo} objects
+     * returned from {@link #getFileInfo(String) getFileInfo} calls.
      */
     public final Utils utils;
 
@@ -135,20 +132,6 @@ public class AzureDataLakeStorageClient {
         if (!fileUri.getAuthority().equals(accountFQDN))
             throw new IllegalArgumentException("account name in URI doesnt match the account of the client");
         return new ADLFileInfo(this, fileUri.getPath());
-    }
-
-    /**
-     * gets an {@link ADLDirectoryInfo} object that can be used to manipulate or query a directory.
-     * <P>
-     * Note that creating this object does not contact the server, it only creates a local object that can be used
-     * to operate on the corresponding directory on the server.
-     * </P>
-     * @param directoryName name of the directory
-     * @return {@link ADLDirectoryInfo} object that can be used to manipulate or query a directory
-     */
-    public ADLDirectoryInfo getDirectoryInfo(String directoryName) {
-        log.debug("DirectoryInfo created for client {} for {}", this.clientId, directoryName);
-        return new ADLDirectoryInfo(this, directoryName);
     }
 
     /**
