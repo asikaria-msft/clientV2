@@ -19,6 +19,7 @@ import com.microsoft.azure.datalake.store.acl.AclStatus;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -930,5 +931,21 @@ public class Core {
         ex.remoteExceptionName = resp.remoteExceptionName;
         ex.remoteExceptionMessage = resp.remoteExceptionMessage;
         ex.remoteExceptionJavaClassName = resp.remoteExceptionJavaClassName;
+
+        if (resp.ex == null && ex.getCause() == null) {
+            ex.initCause(getRemoteException(ex.remoteExceptionJavaClassName, ex.remoteExceptionMessage));
+        }
     }
+
+    private static IOException getRemoteException(String className, String message) {
+        try {
+            Class clazz = Class.forName(className);
+            if (!clazz.isInstance(IOException.class)) { return new IOException(message); }
+            Constructor c = clazz.getConstructor(String.class);
+            return (IOException) c.newInstance(message);
+        } catch (Exception ex) {
+            return new IOException(message);
+        }
+    }
+
 }

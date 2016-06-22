@@ -8,6 +8,7 @@ package com.microsoft.azure.datalake.store;
 
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 
 /**
  * Exception type returned by Azure Data Lake SDK methods. Derives from {@link IOException}.
@@ -68,7 +69,4 @@ public class ADLException extends IOException {
     public ADLException(String message, Throwable initCause) {
         super(message, initCause);
     }
-
-
-
 }
