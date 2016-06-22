@@ -99,8 +99,6 @@ public class Core {
                               AzureDataLakeStorageClient client,
                               RequestOptions opts,
                               OperationResponse resp) {
-        if (contents == null || contents.length == 0 || length == 0) return;
-
         QueryParams qp = new QueryParams();
         qp.add("append", "true");
 

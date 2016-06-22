@@ -15,7 +15,7 @@ public class RefreshTokenBasedTokenProvider extends AccessTokenProvider {
     private final String clientId, refreshToken;
 
     /**
-     * constructs a token provider based on the refresh token provided.
+     * constructs a token provider based on the refresh token provided
      *
      * @param clientId the client ID (GUID) of the client web app obtained from Azure Active Directory configuration
      * @param refreshToken the refresh token

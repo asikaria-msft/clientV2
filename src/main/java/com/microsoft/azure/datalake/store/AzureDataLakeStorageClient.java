@@ -114,8 +114,8 @@ public class AzureDataLakeStorageClient {
      * gets an {@code AzureDataLakeStorageClient} object.
      *
      * @param accountFQDN string containing the fully qualified domain name of the account.
-     *                    e.g., contoso.azuredatalakestore.net
-     * @param accessToken String containing the AAD access token to be used
+     *                    For example, contoso.azuredatalakestore.net
+     * @param tokenProvider {@link AccessTokenProvider} that can provide the AAD token
      * @return the client object
      */
     public static AzureDataLakeStorageClient createClient(String accountFQDN, AccessTokenProvider tokenProvider) {
