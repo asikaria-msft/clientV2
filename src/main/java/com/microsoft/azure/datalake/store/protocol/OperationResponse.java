@@ -20,7 +20,7 @@ public class OperationResponse {
      * whether the request was successful. Callers should always check for success before using any return value from
      * any of the calls.
      */
-    public boolean successful = false;
+    public boolean successful = true;
 
     /**
      * the HTTP response code from the call

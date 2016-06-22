@@ -8,6 +8,8 @@ package com.contoso.liveservicetests;
 
 import com.microsoft.azure.datalake.store.*;
 
+import com.microsoft.azure.datalake.store.oauth2.AzureADAuthenticator;
+import com.microsoft.azure.datalake.store.oauth2.AzureADToken;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -56,14 +58,12 @@ public class TestFileSdk {
         out.close();
 
         // read text from file
-        System.out.format("reading %s%n", filename);
         InputStream in = f.getReadStream();
         byte[] b1 = new byte[4096]; // to account for bloat due to possible bug in upload
         int bytesRead;
         int count = 0;
         while ((bytesRead = in.read(b1, count, b1.length-count)) >=0 && count<=b1.length ) {
             count += bytesRead;
-            System.out.format("  Read %d bytes,  cumulative %d%n", bytesRead, count);
         }
 
         // verify nothing was read
@@ -84,14 +84,12 @@ public class TestFileSdk {
         out.close();
 
         // read text from file
-        System.out.format("reading %s%n", filename);
         InputStream in = f.getReadStream();
         byte[] b1 = new byte[contents.length*2]; // double the size, to account for bloat due to possible bug in upload
         int bytesRead;
         int count = 0;
         while ((bytesRead = in.read(b1, count, b1.length-count)) >=0 && count<=b1.length ) {
             count += bytesRead;
-            System.out.format("  Read %d bytes,  cumulative %d%n", bytesRead, count);
         }
 
         // verify what was read is identical to what was written
@@ -138,14 +136,12 @@ public class TestFileSdk {
         out.close();
 
         // read text from file
-        System.out.format("reading %s%n", filename);
         InputStream in = f.getReadStream();
         byte[] b1 = new byte[contents.length*2]; // double the size, to account for bloat due to possible bug in upload
         int bytesRead;
         int count = 0;
         while ((bytesRead = in.read(b1, count, b1.length-count)) >=0 && count<=b1.length ) {
             count += bytesRead;
-            System.out.format("  Read %d bytes,  cumulative %d%n", bytesRead, count);
         }
 
         // verify what was read is identical to the second text
@@ -167,14 +163,12 @@ public class TestFileSdk {
         out.close();
 
         // read text from file
-        System.out.format("reading %s%n", filename);
         InputStream in = f.getReadStream();
         byte[] b1 = new byte[contents.length*2]; // double the size, to account for bloat due to possible bug in upload
         int bytesRead;
         int count = 0;
         while ((bytesRead = in.read(b1, count, b1.length-count)) >=0 && count<=b1.length ) {
             count += bytesRead;
-            System.out.format("  Read %d bytes,  cumulative %d%n", bytesRead, count);
         }
 
         // verify what was read is identical to what was written
@@ -196,14 +190,12 @@ public class TestFileSdk {
         out.close();
 
         // read from file
-        System.out.format("reading %s%n", filename);
         InputStream in = f.getReadStream();
         byte[] b1 = new byte[contents.length*2]; // double the size, to account for bloat due to possible bug in upload
         int bytesRead;
         int count = 0;
         while ((bytesRead = in.read(b1, count, b1.length-count)) >=0 && count<=b1.length ) {
             count += bytesRead;
-            System.out.format("  Read %d bytes,  cumulative %d%n", bytesRead, count);
         }
 
         // verify what was read is identical to what was written
@@ -231,14 +223,12 @@ public class TestFileSdk {
         byte[] b1 = bos.toByteArray();
 
         // read file contents
-        System.out.format("reading %s%n", filename);
         InputStream in = f.getReadStream();
         byte[] b2 = new byte[b1.length*2]; // double the size, to account for possible bloat due to bug in upload
         int bytesRead;
         int count = 0;
         while ((bytesRead = in.read(b2, count, b2.length-count)) >=0 && count<=b2.length ) {
             count += bytesRead;
-            System.out.format("  Read %d bytes,  cumulative %d%n", bytesRead, count);
         }
 
         // verify what was read is identical to what was written
@@ -266,14 +256,12 @@ public class TestFileSdk {
         byte[] b1 = bos.toByteArray();
 
         // read file contents
-        System.out.format("reading %s%n", filename);
         InputStream in = f.getReadStream();
         byte[] b2 = new byte[13000*742*2]; // double the size, to account for possible bloat due to bug in upload
         int bytesRead;
         int count = 0;
         while ((bytesRead = in.read(b2, count, b2.length-count)) >=0 && count<=b2.length ) {
             count += bytesRead;
-            System.out.format("  Read %d bytes,  cumulative %d%n", bytesRead, count);
         }
 
         // verify what was read is identical to what was written
@@ -293,14 +281,12 @@ public class TestFileSdk {
         fc.concatenateFiles(flist);
 
         // read text from file
-        System.out.format("reading %s%n", fnc);
         InputStream in = fc.getReadStream();
         byte[] b1 = new byte[4096]; // to account for bloat due to possible bug
         int bytesRead;
         int count = 0;
         while ((bytesRead = in.read(b1, count, b1.length-count)) >=0 && count<=b1.length ) {
             count += bytesRead;
-            System.out.format("  Read %d bytes,  cumulative %d%n", bytesRead, count);
         }
 
         // verify what was read is identical to what was written
@@ -327,14 +313,12 @@ public class TestFileSdk {
         f2.concatenateFiles(flist);
 
         // read text from file
-        System.out.format("reading %s%n", fn2);
         InputStream in = f2.getReadStream();
         byte[] b1 = new byte[contents.length*2]; // double the size, to account for bloat due to possible bug in upload
         int bytesRead;
         int count = 0;
         while ((bytesRead = in.read(b1, count, b1.length-count)) >=0 && count<=b1.length ) {
             count += bytesRead;
-            System.out.format("  Read %d bytes,  cumulative %d%n", bytesRead, count);
         }
 
         // verify what was read is identical to what was written
@@ -363,14 +347,12 @@ public class TestFileSdk {
         f2.concatenateFiles(flist);
 
         // read text from file
-        System.out.format("reading %s%n", fn2);
         InputStream in = f1.getReadStream();
         byte[] b1 = new byte[contents.length*2]; // double the size, to account for bloat due to possible bug in upload
         int bytesRead;
         int count = 0;
         while ((bytesRead = in.read(b1, count, b1.length-count)) >=0 && count<=b1.length ) {
             count += bytesRead;
-            System.out.format("  Read %d bytes,  cumulative %d%n", bytesRead, count);
         }
 
         // verify what was read is identical to what was written
@@ -415,14 +397,12 @@ public class TestFileSdk {
         fc.concatenateFiles(flist);
 
         // read text from file
-        System.out.format("reading %s%n", fnc);
         InputStream in = fc.getReadStream();
         byte[] b1 = new byte[contents.length*2]; // double the size, to account for bloat due to possible bug in upload
         int bytesRead;
         int count = 0;
         while ((bytesRead = in.read(b1, count, b1.length-count)) >=0 && count<=b1.length ) {
             count += bytesRead;
-            System.out.format("  Read %d bytes,  cumulative %d%n", bytesRead, count);
         }
 
         // verify what was read is identical to what was written
@@ -475,14 +455,12 @@ public class TestFileSdk {
         fc.concatenateFiles(flist);
 
         // read text from file
-        System.out.format("reading %s%n", fnc);
         InputStream in = fc.getReadStream();
         byte[] b1 = new byte[contents.length*2]; // double the size, to account for bloat due to possible bug in upload
         int bytesRead;
         int count = 0;
         while ((bytesRead = in.read(b1, count, b1.length-count)) >=0 && count<=b1.length ) {
             count += bytesRead;
-            System.out.format("  Read %d bytes,  cumulative %d%n", bytesRead, count);
         }
 
         // verify what was read is identical to what was written
@@ -509,14 +487,12 @@ public class TestFileSdk {
         assertTrue("rename should not return false", succeeded);
 
         // read text from file
-        System.out.format("reading %s%n", filename);
         InputStream in = f.getReadStream();
         byte[] b1 = new byte[contents.length*2]; // double the size, to account for bloat due to possible bug in upload
         int bytesRead;
         int count = 0;
         while ((bytesRead = in.read(b1, count, b1.length-count)) >=0 && count<=b1.length ) {
             count += bytesRead;
-            System.out.format("  Read %d bytes,  cumulative %d%n", bytesRead, count);
         }
 
         // verify what was read is identical to what was written
@@ -543,7 +519,6 @@ public class TestFileSdk {
         assertTrue("rename should not return false", succeeded);
 
         // open same file name as a different ADFIleInfo object and then read file
-        System.out.format("reading %s%n", fnr);
         ADLFileInfo fr = client.getFileInfo(fnr);
         InputStream in = fr.getReadStream();
         byte[] b1 = new byte[contents.length*2]; // double the size, to account for bloat due to possible bug in upload
@@ -551,7 +526,6 @@ public class TestFileSdk {
         int count = 0;
         while ((bytesRead = in.read(b1, count, b1.length-count)) >=0 && count<=b1.length ) {
             count += bytesRead;
-            System.out.format("  Read %d bytes,  cumulative %d%n", bytesRead, count);
         }
 
         // verify what was read is identical to what was written
@@ -621,7 +595,6 @@ public class TestFileSdk {
 
         ADLFileInfo f = client.getFileInfo(filename);
         DirectoryEntry d;
-
 
         try {
             d = f.getDirectoryEntry();

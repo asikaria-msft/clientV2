@@ -126,6 +126,7 @@ class HttpTransport {
 
     private static boolean isSuccessfulResponse(OperationResponse resp, Operation op) {
         if (resp.ex != null) return false;
+        if (resp.successful == false) return false;
         if (resp.httpResponseCode >=100 && resp.httpResponseCode < 300) return true; // 1xx and 2xx return codes
         if  (    (op == Operation.OPEN)
               && (resp.httpResponseCode == 403 || resp.httpResponseCode == 416)      // EOF for OPEN
@@ -161,18 +162,27 @@ class HttpTransport {
                                             int length,
                                             RequestOptions opts,
                                             OperationResponse resp) {
+        try {
         if (client == null || client.getAccountName().equals("") || client.getAccessToken().equals("") ) {
-            // TODO: log this
+            resp.successful = false;
+            resp.message = "Account name or access token were null or blank";
+            return;
+        }
+        } catch (IOException ex) {
+            resp.successful = false;
+            resp.message = "Error fetching access token";
             return;
         }
 
         if (op == null) {
-            // TODO: Log this
+            resp.successful = false;
+            resp.message = "operation is null";
             return;
         }
 
         if (path == null || path.trim().equals("")) {
-            // TODO: log this
+            resp.successful = false;
+            resp.message = "path is null";
             return;
         }
 
@@ -219,7 +229,6 @@ class HttpTransport {
             URL url = new URL(urlString.toString());
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestProperty("Authorization", client.getAccessToken());
-            // TODO: It is wasteful to recompute User-Agent on every call. Move it to adlclient and reuse same string from there
             conn.setRequestProperty("User-Agent", client.getUserAgent());
             conn.setRequestProperty("x-ms-client-request-id", opts.requestid);
             String latencyHeader = LatencyTracker.get();

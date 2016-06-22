@@ -7,9 +7,12 @@
 package com.microsoft.azure.datalake.store;
 
 
+import com.microsoft.azure.datalake.store.oauth2.AccessTokenProvider;
+import com.microsoft.azure.datalake.store.oauth2.AzureADToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -28,6 +31,7 @@ public class AzureDataLakeStorageClient {
 
     private final String accountFQDN;
     private String accessToken;
+    private final AccessTokenProvider tokenProvider;
     private String userAgentSuffix;
     private String userAgentString;
     private static final Logger log = LoggerFactory.getLogger("com.microsoft.azure.datalake.store"); // package-default logging policy
@@ -56,9 +60,10 @@ public class AzureDataLakeStorageClient {
 
 
     // private constructor, references should be obtained using the createClient factory method
-    private AzureDataLakeStorageClient(String accountFQDN, String accessToken, long clientId) {
+    private AzureDataLakeStorageClient(String accountFQDN, String accessToken, long clientId, AccessTokenProvider tokenProvider) {
         this.accountFQDN = accountFQDN;
         this.accessToken = "Bearer " + accessToken;
+        this.tokenProvider = tokenProvider;
         this.clientId = clientId;
         this.utils = new Utils(this);
         this.userAgentString = userAgent;
@@ -81,7 +86,7 @@ public class AzureDataLakeStorageClient {
         }
         long clientId =  clientIdCounter.incrementAndGet();
         log.debug("AzureDatalakeStorageClient {} created for {}", clientId, accountFQDN);
-        return new AzureDataLakeStorageClient(accountFQDN, token.accessToken, clientId);
+        return new AzureDataLakeStorageClient(accountFQDN, token.accessToken, clientId, null);
     }
 
     /**
@@ -102,7 +107,28 @@ public class AzureDataLakeStorageClient {
         }
         long clientId =  clientIdCounter.incrementAndGet();
         log.debug("AzureDatalakeStorageClient {} created for {}", clientId, accountFQDN);
-        return new AzureDataLakeStorageClient(accountFQDN, accessToken, clientId);
+        return new AzureDataLakeStorageClient(accountFQDN, accessToken, clientId, null);
+    }
+
+    /**
+     * gets an {@code AzureDataLakeStorageClient} object.
+     *
+     * @param accountFQDN string containing the fully qualified domain name of the account.
+     *                    e.g., contoso.azuredatalakestore.net
+     * @param accessToken String containing the AAD access token to be used
+     * @return the client object
+     */
+    public static AzureDataLakeStorageClient createClient(String accountFQDN, AccessTokenProvider tokenProvider) {
+        if (accountFQDN == null || accountFQDN.trim().equals("")) {
+            throw new IllegalArgumentException("account name is required");
+        }
+
+        if (tokenProvider == null) {
+            throw new IllegalArgumentException("token provider is required");
+        }
+        long clientId =  clientIdCounter.incrementAndGet();
+        log.debug("AzureDatalakeStorageClient {} created for {}", clientId, accountFQDN);
+        return new AzureDataLakeStorageClient(accountFQDN, null, clientId, tokenProvider);
     }
 
     /**
@@ -169,8 +195,12 @@ public class AzureDataLakeStorageClient {
      * gets the AAD access token associated with this client
      * @return String containing the AAD Access token
      */
-    public String getAccessToken() {
-        return accessToken;
+    public String getAccessToken() throws IOException {
+        if (tokenProvider != null ) {
+            return "Bearer " + tokenProvider.getToken().accessToken;
+        } else {
+            return accessToken;
+        }
     }
 
     /**

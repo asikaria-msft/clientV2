@@ -905,7 +905,7 @@ public class Core {
      */
     public static ADLException getExceptionFromResp(OperationResponse resp, String defaultMessage) {
         String msg = (resp.message == null) ? defaultMessage : resp.message;
-        ADLException ex = new ADLException(msg, resp.ex);
+        ADLException ex = new ADLException(msg);
         copyResponseToADLException(resp, ex);
         return ex;
     }
@@ -932,8 +932,13 @@ public class Core {
         ex.remoteExceptionMessage = resp.remoteExceptionMessage;
         ex.remoteExceptionJavaClassName = resp.remoteExceptionJavaClassName;
 
-        if (resp.ex == null && ex.getCause() == null) {
+        if (    resp.ex == null &&
+                ex.getCause() == null &&
+                ex.remoteExceptionJavaClassName !=null &&
+                !ex.remoteExceptionJavaClassName.equals("")) {
             ex.initCause(getRemoteException(ex.remoteExceptionJavaClassName, ex.remoteExceptionMessage));
+        } else {
+            ex.initCause(resp.ex);
         }
     }
 

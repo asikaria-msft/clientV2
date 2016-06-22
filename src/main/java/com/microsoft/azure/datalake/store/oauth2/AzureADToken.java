@@ -4,7 +4,7 @@
  * See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.datalake.store;
+package com.microsoft.azure.datalake.store.oauth2;
 
 import java.util.Calendar;
 

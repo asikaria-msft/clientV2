@@ -7,8 +7,8 @@
 package com.contoso.liveservicetests;
 
 import com.microsoft.azure.datalake.store.ADLException;
-import com.microsoft.azure.datalake.store.AzureADAuthenticator;
-import com.microsoft.azure.datalake.store.AzureADToken;
+import com.microsoft.azure.datalake.store.oauth2.AzureADAuthenticator;
+import com.microsoft.azure.datalake.store.oauth2.AzureADToken;
 import com.microsoft.azure.datalake.store.AzureDataLakeStorageClient;
 import com.microsoft.azure.datalake.store.protocol.Core;
 import com.microsoft.azure.datalake.store.protocol.OperationResponse;
