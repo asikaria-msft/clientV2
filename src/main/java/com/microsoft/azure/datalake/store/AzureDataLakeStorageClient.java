@@ -194,6 +194,7 @@ public class AzureDataLakeStorageClient {
     /**
      * gets the AAD access token associated with this client
      * @return String containing the AAD Access token
+     * @throws IOException thrown if a token provider is being used and the token provider has problem getting token
      */
     public String getAccessToken() throws IOException {
         if (tokenProvider != null ) {

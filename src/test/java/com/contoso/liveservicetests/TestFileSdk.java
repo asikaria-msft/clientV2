@@ -46,6 +46,14 @@ public class TestFileSdk {
         testsEnabled = Boolean.parseBoolean(prop.getProperty("SdkTestsEnabled", "true"));
     }
 
+    @Test
+    public void createDirectory() throws IOException {
+        Assume.assumeTrue(testsEnabled);
+        String filename = directory + "/" + "Sdk.createDirectory/a/b/c";
+
+        ADLFileInfo f = client.getFileInfo(filename);
+        f.createDirectory();
+    }
 
     @Test
     public void createEmptyFile() throws IOException {

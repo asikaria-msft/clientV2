@@ -214,7 +214,8 @@ public class Core {
      * rename a file.
      *
      * @param path the full path of the existing file to rename. (the old name)
-     * @param overwrite
+     * @param overwrite overwrite the destination if it already exists and is a file or an
+     *                  empty directory
      * @param destination the new name of the file
      * @param client the {@link AzureDataLakeStorageClient}
      * @param opts options to change the behavior of the call

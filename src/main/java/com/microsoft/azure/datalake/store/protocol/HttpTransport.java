@@ -200,13 +200,11 @@ class HttpTransport {
             }
         }
 
-        if (path.charAt(0) != '/') path = "/" + path;
-
         if (queryParams == null) queryParams = new QueryParams();
 
         // Build URL
         StringBuilder urlString = new StringBuilder();
-        urlString.append(client.getHttpPrefix());
+        urlString.append(client.getHttpPrefix());    // http or https
         urlString.append("://");
         urlString.append(client.getAccountName());
         if (op.isExt) {
@@ -215,10 +213,19 @@ class HttpTransport {
             urlString.append("/webhdfs/v1");
         }
 
-        try {
+/*        try {
             // URL encode, but keep the "/" characters
             urlString.append(URLEncoder.encode(path, "UTF-8").replace("%2F", "/").replace("%2f", "/").replace("+", "%20"));
         } catch (UnsupportedEncodingException ex) {}
+*/
+        if (path.charAt(0) != '/') urlString.append('/');
+        try {
+            urlString.append((new URI(null, null, path, null)).getRawPath());   // use URI to encode path
+        } catch (URISyntaxException ex) {
+            resp.successful = false;
+            resp.message = "Invalid path " + path;
+            return;
+        }
         urlString.append('?');
 
         queryParams.setOp(op);
