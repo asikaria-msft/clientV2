@@ -41,16 +41,24 @@ public class ADLFileInputStream extends InputStream {
     private final String filename;
     private final AzureDataLakeStorageClient client;
 
-    private final int blocksize = 4 * 1024 *1024;
+    private final int blocksize = 20;
     private final byte[] buffer = new byte[blocksize]; //4MB byte buffer
 
-    private long fCursor = 0;  // bCursor of buffer within file - offset of next offset to read
+    private long fCursor = 0;  // bCursor of buffer within file - offset of next byte to read
     private int bCursor = 0;   // bCursor of read within buffer - offset of next byte to be returned from buffer
     private int limit = 0;     // offset of next byte to be read into buffer from service (i.e., upper marker+1
                                //                                                      of valid bytes in buffer)
     private boolean streamClosed = false;
 
-    protected long readFromService(long len) throws ADLException {
+
+    /**
+     * Read from service attempts to read {@code blocksize} bytes from service.
+     * Returns how many bytes are actually read, could be less than blocksize.
+     *
+     * @return number of bytes actually read
+     * @throws ADLException if error
+     */
+    protected long readFromService() throws ADLException {
         if (bCursor < limit) return 0; //if there's still unread data in the buffer then dont overwrite it
 
         if (log.isTraceEnabled()) {
@@ -65,7 +73,7 @@ public class ADLFileInputStream extends InputStream {
         RequestOptions opts = new RequestOptions();
         opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
-        InputStream str = Core.open(filename, fCursor, len, client, opts, resp);
+        InputStream str = Core.open(filename, fCursor, blocksize, client, opts, resp);
         if (resp.httpResponseCode == 403 || resp.httpResponseCode == 416) {
             resp.successful = true;
             return -1; //End-of-file
@@ -77,7 +85,7 @@ public class ADLFileInputStream extends InputStream {
         try {
             do {
                 bytesRead = str.read(buffer, limit, blocksize - limit);
-                if (bytesRead > 0) {
+                if (bytesRead > 0) { // if not EOF
                     limit += bytesRead;
                     fCursor += bytesRead;
                     totalBytesRead += bytesRead;
@@ -138,7 +146,7 @@ public class ADLFileInputStream extends InputStream {
         //If buffer is empty, then fill the buffer. If EOF, then return -1
         if (bCursor == limit)
         {
-            if (readFromService(blocksize) < 0) return -1;
+            if (readFromService() < 0) return -1;
         }
 
         //If there is anything in the buffer, then return lesser of (requested bytes) and (bytes in buffer)
@@ -155,16 +163,18 @@ public class ADLFileInputStream extends InputStream {
             log.trace("begin seek to offset {} using client {} from file {}", n, client.getClientId(), filename);
         }
         long skiplength = n - getPos();
+        //System.out.format("Seek to %d; position = %d; skiplen = %d; bCursor = %d; limit = %d; fCursor = %d\n",
+        //        n, getPos(), skiplength, bCursor, limit, fCursor);
         skip(skiplength);
+        //System.out.format("  getPos() after seek = %d\n", getPos());
         return getPos();
     }
-
 
     @Override
     public long skip(long n) throws IOException {
         if (streamClosed) throw new IOException("attempting to read from a closed stream;");
         if (n==0) return 0;
-        if (n < -(fCursor+bCursor)) throw new IllegalArgumentException("Cannot seek past beginning of file");
+        if (n < -getPos()) throw new IllegalArgumentException("Cannot seek past beginning of file");
         // cannot do corresponding check for end of file, because we dont know length without doing a server call
 
         if (log.isTraceEnabled()) {
@@ -172,12 +182,12 @@ public class ADLFileInputStream extends InputStream {
         }
 
         if (n<0) {
-            int max = -(limit-bCursor); // max distance we can go back within buffer
+            int max = -bCursor; // max distance we can go back within buffer
             if (n<max) { // if past beginning of buffer, then need to seek from server. Invalidate buffer and read
+                fCursor = getPos() + n; // n is -ve
                 limit=0;
                 bCursor = 0;
-                fCursor = fCursor + bCursor + n; // n is -ve
-                readFromService(blocksize);
+                readFromService();
             } else {  // within buffer; all we need to do is reset the buffer pointer backwards
                 bCursor += n; // n is -ve
             }
@@ -191,10 +201,10 @@ public class ADLFileInputStream extends InputStream {
             int oldLimit = limit;
             int oldBCursor = bCursor;
             long oldFCursor = fCursor;
+            fCursor = getPos() + n;
             limit=0;
             bCursor = 0;
-            fCursor = fCursor + bCursor + n;
-            if (readFromService(blocksize)<0)
+            if (readFromService()<0)
             {   // past end of file. restore state and report zero movement
                 limit = oldLimit;
                 bCursor = oldBCursor;
@@ -223,7 +233,7 @@ public class ADLFileInputStream extends InputStream {
      * @throws ADLException throws {@link ADLException} if call fails
      */
     long getPos() throws ADLException {
-        return fCursor + bCursor;
+        return fCursor - limit + bCursor;
     }
 
     /**

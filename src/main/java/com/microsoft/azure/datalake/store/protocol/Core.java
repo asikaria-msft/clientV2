@@ -161,6 +161,18 @@ public class Core {
                                    OperationResponse resp) {
         QueryParams qp = new QueryParams();
         qp.add("read", "true");
+        if (offset < 0) {
+            resp.successful = false;
+            resp.message = "attempt to read from negative offset: " + offset;
+            return null;
+        }
+
+        if (length < 0) {
+            resp.successful = false;
+            resp.message = "attempt to read negative length: " + length;
+            return null;
+        }
+
         if (offset > 0) qp.add("offset", Long.toString(offset));
         if (length > 0) qp.add("length", Long.toString(length));
 
