@@ -41,62 +41,14 @@ public class ADLFileInputStream extends InputStream {
     private final String filename;
     private final AzureDataLakeStorageClient client;
 
-    private final int blocksize = 20;
-    private final byte[] buffer = new byte[blocksize]; //4MB byte buffer
+    private int blocksize = 4 * 1024 * 1024;
+    private byte[] buffer = new byte[blocksize]; //4MB byte-buffer
 
     private long fCursor = 0;  // bCursor of buffer within file - offset of next byte to read
     private int bCursor = 0;   // bCursor of read within buffer - offset of next byte to be returned from buffer
     private int limit = 0;     // offset of next byte to be read into buffer from service (i.e., upper marker+1
                                //                                                      of valid bytes in buffer)
     private boolean streamClosed = false;
-
-
-    /**
-     * Read from service attempts to read {@code blocksize} bytes from service.
-     * Returns how many bytes are actually read, could be less than blocksize.
-     *
-     * @return number of bytes actually read
-     * @throws ADLException if error
-     */
-    protected long readFromService() throws ADLException {
-        if (bCursor < limit) return 0; //if there's still unread data in the buffer then dont overwrite it
-
-        if (log.isTraceEnabled()) {
-            log.trace("read from server at offset {} using client {} from file {}", getPos(), client.getClientId(), filename);
-        }
-
-        //reset buffer to initial state - i.e., throw away existing data
-        bCursor = 0;
-        limit = 0;
-
-        // make server call to get more data
-        RequestOptions opts = new RequestOptions();
-        opts.retryPolicy = new ExponentialOnThrottlePolicy();
-        OperationResponse resp = new OperationResponse();
-        InputStream str = Core.open(filename, fCursor, blocksize, client, opts, resp);
-        if (resp.httpResponseCode == 403 || resp.httpResponseCode == 416) {
-            resp.successful = true;
-            return -1; //End-of-file
-        }
-        if (!resp.successful) throw Core.getExceptionFromResp(resp, "Error reading from file " + filename);
-        if (resp.responseContentLength == 0 && !resp.responseChunked) return 0;  //Got nothing
-        int bytesRead;
-        int totalBytesRead = 0;
-        try {
-            do {
-                bytesRead = str.read(buffer, limit, blocksize - limit);
-                if (bytesRead > 0) { // if not EOF
-                    limit += bytesRead;
-                    fCursor += bytesRead;
-                    totalBytesRead += bytesRead;
-                }
-            } while (bytesRead >= 0 && limit < blocksize);
-            str.close();
-        } catch (IOException ex) {
-            throw new ADLException("Error reading data", ex);
-        }
-        return totalBytesRead;
-    }
 
 
     // no constructor - use Factory Method in AzureDataLakeStoreClient
@@ -158,15 +110,65 @@ public class ADLFileInputStream extends InputStream {
         return bytesToRead;
     }
 
+    /**
+     * Read from service attempts to read {@code blocksize} bytes from service.
+     * Returns how many bytes are actually read, could be less than blocksize.
+     *
+     * @return number of bytes actually read
+     * @throws ADLException if error
+     */
+    protected long readFromService() throws ADLException {
+        if (bCursor < limit) return 0; //if there's still unread data in the buffer then dont overwrite it
+
+        if (log.isTraceEnabled()) {
+            log.trace("read from server at offset {} using client {} from file {}", getPos(), client.getClientId(), filename);
+        }
+
+        //reset buffer to initial state - i.e., throw away existing data
+        bCursor = 0;
+        limit = 0;
+
+        // make server call to get more data
+        RequestOptions opts = new RequestOptions();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
+        OperationResponse resp = new OperationResponse();
+        InputStream str = Core.open(filename, fCursor, blocksize, client, opts, resp);
+        if (resp.httpResponseCode == 403 || resp.httpResponseCode == 416) {
+            resp.successful = true;
+            return -1; //End-of-file
+        }
+        if (!resp.successful) throw Core.getExceptionFromResp(resp, "Error reading from file " + filename);
+        if (resp.responseContentLength == 0 && !resp.responseChunked) return 0;  //Got nothing
+        int bytesRead;
+        int totalBytesRead = 0;
+        try {
+            do {
+                bytesRead = str.read(buffer, limit, blocksize - limit);
+                if (bytesRead > 0) { // if not EOF
+                    limit += bytesRead;
+                    fCursor += bytesRead;
+                    totalBytesRead += bytesRead;
+                }
+            } while (bytesRead >= 0 && limit < blocksize);
+            str.close();
+        } catch (IOException ex) {
+            throw new ADLException("Error reading data", ex);
+        }
+        return totalBytesRead;
+    }
+
+    /**
+     * Seek to given position in stream.
+     * @param n position to seek to
+     * @return actual position after the seek. This may differ from the requested position.
+     * @throws IOException if there is an error
+     */
     public long seek(long n) throws IOException {
         if (log.isTraceEnabled()) {
             log.trace("begin seek to offset {} using client {} from file {}", n, client.getClientId(), filename);
         }
         long skiplength = n - getPos();
-        //System.out.format("Seek to %d; position = %d; skiplen = %d; bCursor = %d; limit = %d; fCursor = %d\n",
-        //        n, getPos(), skiplength, bCursor, limit, fCursor);
         skip(skiplength);
-        //System.out.format("  getPos() after seek = %d\n", getPos());
         return getPos();
     }
 
@@ -216,6 +218,25 @@ public class ADLFileInputStream extends InputStream {
     }
 
     /**
+     * Sets the size of the internal read buffer (default is 4MB).
+     * @param newSize requested size of buffer
+     * @throws ADLException if there is an error
+     */
+    public void setBufferSize(int newSize) throws ADLException {
+        if (newSize <=0) throw new IllegalArgumentException("Buffer size cannot be zero or less: " + newSize);
+        if (newSize == blocksize) return;  // nothing to do
+
+        // discard existing buffer.
+        // We could write some code to keep what we can from existing buffer, but given this call will
+        // be rarely used, and even when used will likely be right after the stream is constructed,
+        // the extra complexity is not worth it.
+        unbuffer();
+
+        blocksize = newSize;
+        buffer = new byte[blocksize];
+    }
+
+    /**
      * returns the remaining number of bytes available to read from the buffer, without having to call
      * the server
      *
@@ -230,9 +251,8 @@ public class ADLFileInputStream extends InputStream {
     /**
      * gets the position of the cursor within the file
      * @return position of the cursor
-     * @throws ADLException throws {@link ADLException} if call fails
      */
-    long getPos() throws ADLException {
+    long getPos() {
         return fCursor - limit + bCursor;
     }
 
@@ -243,6 +263,7 @@ public class ADLFileInputStream extends InputStream {
         if (log.isTraceEnabled()) {
             log.trace("ADLInput Stream cleared buffer for client {} for file {}", client.getClientId(), filename);
         }
+        fCursor = getPos();
         limit = 0;
         bCursor = 0;
     }

@@ -17,7 +17,6 @@ public class RequestOptions {
      * the timeout to use for the request. This is used for both
      * the readTimeout and the connectTimeout for the request, so
      * in effect the actual timout is two times the specified timeout.
-     * TODO: This is currently only implemented as connection timeout
      */
     public int timeout = 0;
 

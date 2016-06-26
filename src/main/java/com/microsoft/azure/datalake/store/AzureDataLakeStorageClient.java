@@ -184,6 +184,20 @@ public class AzureDataLakeStorageClient {
     }
 
     /**
+     * gets the AAD access token associated with this client
+     * @return String containing the AAD Access token
+     * @throws IOException thrown if a token provider is being used and the token provider has problem getting token
+     */
+    public synchronized String getAccessToken() throws IOException {
+        if (tokenProvider != null ) {
+            return "Bearer " + tokenProvider.getToken().accessToken;
+        } else {
+            return accessToken;
+        }
+    }
+
+
+    /**
      * gets the Azure Data Lake Store account name associated with this client
      * @return the account name
      */
@@ -191,18 +205,7 @@ public class AzureDataLakeStorageClient {
         return accountFQDN;
     }
 
-    /**
-     * gets the AAD access token associated with this client
-     * @return String containing the AAD Access token
-     * @throws IOException thrown if a token provider is being used and the token provider has problem getting token
-     */
-    public String getAccessToken() throws IOException {
-        if (tokenProvider != null ) {
-            return "Bearer " + tokenProvider.getToken().accessToken;
-        } else {
-            return accessToken;
-        }
-    }
+
 
     /**
      * returns the user agent suffix to be added to the User-Agent header in all HTTP requests made to the server.

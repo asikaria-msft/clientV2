@@ -29,10 +29,11 @@ public class ADLFileOutputStream extends OutputStream {
     private final String filename;
     private final AzureDataLakeStorageClient client;
     private final boolean isCreate;
-
     private final boolean overwrite;
-    private final int blocksize = 4 * 1024 *1024;
-    private final byte[] buffer = new byte[blocksize]; //4MB byte buffer
+
+    private int blocksize = 4 * 1024 *1024;
+    private byte[] buffer = new byte[blocksize]; //4MB byte-buffer
+
     private int cursor = 0;
     private boolean created;
     private boolean streamClosed = false;
@@ -104,6 +105,8 @@ public class ADLFileOutputStream extends OutputStream {
         if (cursor >= blocksize) flush();
     }
 
+
+
     private void addToBuffer(byte[] b, int off, int len) {
         if (len > buffer.length - cursor) { // if requesting to copy more than remaining space in buffer
             throw new IllegalArgumentException("invalid buffer copy requested in addToBuffer");
@@ -140,6 +143,23 @@ public class ADLFileOutputStream extends OutputStream {
             }
         }
         cursor = 0;
+    }
+
+    /**
+     * Sets the size of the internal write buffer (default is 4MB).
+     *
+     * @param newSize requested size of buffer
+     * @throws ADLException if there is an error
+     */
+    public void setBufferSize(int newSize) throws IOException {
+        if (newSize <=0) throw new IllegalArgumentException("Buffer size cannot be zero or less: " + newSize);
+        if (newSize == blocksize) return;  // nothing to do
+
+        if (cursor != 0) {   // if there's data in the buffer then flush it first
+            flush();
+        }
+        blocksize = newSize;
+        buffer = new byte[blocksize];
     }
 
     @Override

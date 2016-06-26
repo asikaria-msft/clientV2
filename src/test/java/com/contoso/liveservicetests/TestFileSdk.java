@@ -278,6 +278,47 @@ public class TestFileSdk {
         assertTrue("file contents should match", Arrays.equals(b1, b3));
     }
 
+    @Test
+    public void writeFilewithSmallBuffer() throws IOException {
+        Assume.assumeTrue(testsEnabled);
+        String filename = directory + "/" + "Sdk.CreateFileAndDoManySmallWrites.txt";
+
+        // write a small text many times to file, creating a large file (multiple 4MB chunks + partial chunk)
+        byte [] contents = HelperUtils.getSampleText1();
+        ADLFileInfo f = client.getFileInfo(filename);
+        ADLFileOutputStream adlout = f.createFromStream(true);
+        OutputStream out = adlout;
+
+
+        // first, write contents with default buffer size
+        ByteArrayOutputStream bos = new ByteArrayOutputStream(2 * 742);
+        out.write(contents);
+        bos.write(contents);
+
+        // now resize buffer and then write
+        adlout.setBufferSize(37);  // set to small prime number
+        out.write(contents);
+        bos.write(contents);
+
+        out.close();
+        bos.close();
+        byte[] b1 = bos.toByteArray();
+
+        // read file contents
+        InputStream in = f.getReadStream();
+        byte[] b2 = new byte[742*4]; // double the size, to account for possible bloat due to bug in upload
+        int bytesRead;
+        int count = 0;
+        while ((bytesRead = in.read(b2, count, b2.length-count)) >=0 && count<=b2.length ) {
+            count += bytesRead;
+        }
+
+        // verify what was read is identical to what was written
+        assertTrue("file length should match what was written", b1.length == count);
+        byte[] b3 = Arrays.copyOfRange(b2, 0, count);
+        assertTrue("file contents should match", Arrays.equals(b1, b3));
+    }
+
     @Test(expected = ADLException.class)
     public void concatZeroFiles() throws IOException {
         Assume.assumeTrue(testsEnabled);

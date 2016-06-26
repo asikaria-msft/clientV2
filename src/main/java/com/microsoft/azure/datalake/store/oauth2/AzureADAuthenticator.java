@@ -5,8 +5,6 @@
  */
 
 package com.microsoft.azure.datalake.store.oauth2;
-
-import com.microsoft.azure.datalake.store.oauth2.AzureADToken;
 import com.microsoft.azure.datalake.store.protocol.QueryParams;
 
 import java.io.IOException;
@@ -16,7 +14,6 @@ import java.util.Calendar;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 
 /**
@@ -130,9 +127,9 @@ public class AzureADAuthenticator {
 
             token.accessToken = rootNode.path("access_token").asText();
             int expiryPeriod = rootNode.path("expires_in").asInt(0);
-            Calendar c = Calendar.getInstance();
-            c.add(Calendar.SECOND, expiryPeriod);
-            token.expiry = c;
+            Calendar cal = Calendar.getInstance();
+            cal.add(Calendar.SECOND, expiryPeriod);
+            token.expiry = cal;
             token.refreshToken = null;
         } else {
             throw new IOException("Failed to acquire token from AzureAD. Http response: " + httpResponseCode + " " + conn.getResponseMessage());

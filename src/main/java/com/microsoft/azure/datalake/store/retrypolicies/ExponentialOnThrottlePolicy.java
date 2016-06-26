@@ -54,12 +54,10 @@ public class ExponentialOnThrottlePolicy implements RetryPolicy {
         // these are not errors - this method should never have been called with this
         if (httpResponseCode >= 100 && httpResponseCode <300)
         {
-            // TODO: log this
             return false;
         }
 
         // Dont know what happened - we should never get here
-        // TODO: log this
         return false;
     }
 

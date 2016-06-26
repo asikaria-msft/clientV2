@@ -10,6 +10,10 @@ ClientAppName=
 ClientRedirectUri=
 Resource=https://management.core.windows.net/
 
-#Enable/disable sets of tests
+# Control what unit tests are enabled
 CoreTestsEnabled=true
 SdkTestsEnabled=true
+PositionedReadsTestsEnabled=true
+acl.AclActionTestsEnabled=true
+acl.AclEntryTestsEnabled=true
+acl.AclSpecTestsEnabled=true
