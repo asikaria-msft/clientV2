@@ -66,7 +66,6 @@ public class ADLFileOutputStream extends OutputStream {
 
     @Override
     public void write(byte[] b, int off, int len) throws IOException {
-
         if (streamClosed) throw new IOException("attempting to write to a closed stream;");
         if (b == null) {
             throw new NullPointerException();

@@ -28,12 +28,12 @@ import java.util.List;
 public class ADLFileInfo {
 
     private final AzureDataLakeStorageClient client;
-    private String filename = null;  // cannot be marked final - rename can change it
+    private String path = null;  // cannot be marked final - rename can change it
 
     // package-private constructor - use factory method in AzureDataLakeStorageClient
-    ADLFileInfo(AzureDataLakeStorageClient client, String filename) {
+    ADLFileInfo(AzureDataLakeStorageClient client, String path) {
         this.client = client;
-        this.filename = filename;
+        this.path = path;
     }
 
     /*
@@ -54,7 +54,7 @@ public class ADLFileInfo {
      * @return  {@link ADLFileOutputStream} to write to
      */
     public ADLFileOutputStream createFromStream(boolean overwriteIfExists) {
-        return new ADLFileOutputStream(filename, client, true, overwriteIfExists);
+        return new ADLFileOutputStream(path, client, true, overwriteIfExists);
     }
 
     /**
@@ -64,7 +64,7 @@ public class ADLFileInfo {
      * @return {@link ADLFileInputStream} to read the file contents from.
      */
     public ADLFileInputStream getReadStream() {
-        return new ADLFileInputStream(filename, client);
+        return new ADLFileInputStream(path, client);
     }
 
     /**
@@ -74,7 +74,7 @@ public class ADLFileInfo {
      *         will be appended to the file.
      */
     public ADLFileOutputStream getAppendStream() {
-        return new ADLFileOutputStream(filename, client, false, false);
+        return new ADLFileOutputStream(path, client, false, false);
     }
 
     /**
@@ -91,9 +91,9 @@ public class ADLFileInfo {
         RequestOptions opts = new RequestOptions();
         opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
-        Core.concat(filename, fileList, client, opts, resp);
+        Core.concat(path, fileList, client, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(resp, "Error concatenating files into " + filename);
+            throw Core.getExceptionFromResp(resp, "Error concatenating files into " + path);
         }
         return true;
     }
@@ -195,9 +195,9 @@ public class ADLFileInfo {
         RequestOptions opts = new RequestOptions();
         opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
-        List<DirectoryEntry> dirEnt  = Core.listStatus(filename, startAfter, endBefore, maxEntriesToRetrieve, client, opts, resp);
+        List<DirectoryEntry> dirEnt  = Core.listStatus(path, startAfter, endBefore, maxEntriesToRetrieve, client, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(resp, "Error enumerating directory " + filename);
+            throw Core.getExceptionFromResp(resp, "Error enumerating directory " + path);
         }
         return dirEnt;
     }
@@ -223,9 +223,9 @@ public class ADLFileInfo {
         RequestOptions opts = new RequestOptions();
         opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
-        boolean succeeded = Core.mkdirs(filename, octalPermission, client, opts, resp);
+        boolean succeeded = Core.mkdirs(path, octalPermission, client, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(resp, "Error creating directory " + filename);
+            throw Core.getExceptionFromResp(resp, "Error creating directory " + path);
         }
         return succeeded;
     }
@@ -240,9 +240,9 @@ public class ADLFileInfo {
         RequestOptions opts = new RequestOptions();
         opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
-        boolean succeeded = Core.delete(filename, true, client, opts, resp);
+        boolean succeeded = Core.delete(path, true, client, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(resp, "Error deleting directory tree " + filename);
+            throw Core.getExceptionFromResp(resp, "Error deleting directory tree " + path);
         }
         return succeeded;
     }
@@ -257,9 +257,9 @@ public class ADLFileInfo {
         RequestOptions opts = new RequestOptions();
         opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
-        Core.removeDefaultAcl(filename, client, opts, resp);
+        Core.removeDefaultAcl(path, client, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(resp, "Error removing default ACLs for directory " + filename);
+            throw Core.getExceptionFromResp(resp, "Error removing default ACLs for directory " + path);
         }
     }
 
@@ -299,11 +299,11 @@ public class ADLFileInfo {
         RequestOptions opts = new RequestOptions();
         opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
-        boolean succeeded = Core.rename(filename, newName, overwrite, client, opts, resp);
+        boolean succeeded = Core.rename(path, newName, overwrite, client, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(resp, "Error renaming file " + filename);
+            throw Core.getExceptionFromResp(resp, "Error renaming file " + path);
         }
-        filename = newName;
+        path = newName;
         return succeeded;
     }
 
@@ -318,9 +318,9 @@ public class ADLFileInfo {
         RequestOptions opts = new RequestOptions();
         opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
-        boolean succeeded = Core.delete(filename, false, client, opts, resp);
+        boolean succeeded = Core.delete(path, false, client, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(resp, "Error deleting directory " + filename);
+            throw Core.getExceptionFromResp(resp, "Error deleting directory " + path);
         }
         return succeeded;
     }
@@ -335,9 +335,9 @@ public class ADLFileInfo {
         RequestOptions opts = new RequestOptions();
         opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
-        DirectoryEntry dirEnt  = Core.getFileStatus(filename, client, opts, resp);
+        DirectoryEntry dirEnt  = Core.getFileStatus(path, client, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(resp, "Error getting info for file " + filename);
+            throw Core.getExceptionFromResp(resp, "Error getting info for file " + path);
         }
         return dirEnt;
     }
@@ -354,9 +354,9 @@ public class ADLFileInfo {
         RequestOptions opts = new RequestOptions();
         opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
-        Core.setOwner(filename, owner, group, client, opts, resp);
+        Core.setOwner(path, owner, group, client, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(resp, "Error setting owner for file " + filename);
+            throw Core.getExceptionFromResp(resp, "Error setting owner for file " + path);
         }
     }
 
@@ -374,9 +374,9 @@ public class ADLFileInfo {
         RequestOptions opts = new RequestOptions();
         opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
-        Core.setTimes(filename, atimeLong, mtimeLong, client, opts, resp);
+        Core.setTimes(path, atimeLong, mtimeLong, client, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(resp, "Error setting times for file " + filename);
+            throw Core.getExceptionFromResp(resp, "Error setting times for file " + path);
         }
     }
 
@@ -392,9 +392,9 @@ public class ADLFileInfo {
         RequestOptions opts = new RequestOptions();
         opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
-        Core.setPermission(filename, octalPermissions, client, opts, resp);
+        Core.setPermission(path, octalPermissions, client, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(resp, "Error setting times for " + filename);
+            throw Core.getExceptionFromResp(resp, "Error setting times for " + path);
         }
     }
 
@@ -413,10 +413,10 @@ public class ADLFileInfo {
         RequestOptions opts = new RequestOptions();
         opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
-        Core.checkAccess(filename, rwx, client, opts, resp);
+        Core.checkAccess(path, rwx, client, opts, resp);
         if (!resp.successful) {
             if (resp.httpResponseCode == 401 || resp.httpResponseCode == 403) return false;
-            throw Core.getExceptionFromResp(resp, "Error checking access for " + filename);
+            throw Core.getExceptionFromResp(resp, "Error checking access for " + path);
         }
         return true;
     }
@@ -462,9 +462,9 @@ public class ADLFileInfo {
         RequestOptions opts = new RequestOptions();
         opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
-        Core.modifyAclEntries(filename, aclSpec, client, opts, resp);
+        Core.modifyAclEntries(path, aclSpec, client, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(resp, "Error modifying ACLs for " + filename);
+            throw Core.getExceptionFromResp(resp, "Error modifying ACLs for " + path);
         }
     }
 
@@ -480,9 +480,9 @@ public class ADLFileInfo {
         RequestOptions opts = new RequestOptions();
         opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
-        Core.setAcl(filename, aclSpec, client, opts, resp);
+        Core.setAcl(path, aclSpec, client, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(resp, "Error setting ACLs for " + filename);
+            throw Core.getExceptionFromResp(resp, "Error setting ACLs for " + path);
         }
     }
 
@@ -496,9 +496,9 @@ public class ADLFileInfo {
         RequestOptions opts = new RequestOptions();
         opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
-        Core.removeAclEntries(filename, aclSpec, client, opts, resp);
+        Core.removeAclEntries(path, aclSpec, client, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(resp, "Error removing ACLs for " + filename);
+            throw Core.getExceptionFromResp(resp, "Error removing ACLs for " + path);
         }
     }
 
@@ -510,9 +510,9 @@ public class ADLFileInfo {
         RequestOptions opts = new RequestOptions();
         opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
-        Core.removeAcl(filename, client, opts, resp);
+        Core.removeAcl(path, client, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(resp, "Error removing all ACLs for file " + filename);
+            throw Core.getExceptionFromResp(resp, "Error removing all ACLs for file " + path);
         }
     }
 
@@ -527,9 +527,9 @@ public class ADLFileInfo {
         RequestOptions opts = new RequestOptions();
         opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
-        status = Core.getAclStatus(filename, client, opts, resp);
+        status = Core.getAclStatus(path, client, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(resp, "Error getting  ACL Status for " + filename);
+            throw Core.getExceptionFromResp(resp, "Error getting  ACL Status for " + path);
         }
         return status;
     }

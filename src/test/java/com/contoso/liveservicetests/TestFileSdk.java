@@ -657,7 +657,7 @@ public class TestFileSdk {
         out.write(contents);
         try {
             d = f.getDirectoryEntry();
-            assertTrue("unflushed file should still not exist", false);
+            fail("unflushed file should still not exist");
         } catch (ADLException ex) {
             assertTrue("Unflushed file should get 404", ex.httpResponseCode == 404);
         }
@@ -739,7 +739,7 @@ public class TestFileSdk {
         try {
             ADLFileInfo d = client.getFileInfo(parentDir);
             d.getDirectoryEntry();
-            assertTrue("getDirectoryEntry should fail on a deleted directory", false);
+            fail("getDirectoryEntry should fail on a deleted directory");
         } catch (ADLException ex) {
             if (ex.httpResponseCode!=404) throw ex;
         }

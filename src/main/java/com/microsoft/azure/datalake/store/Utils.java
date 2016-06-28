@@ -115,8 +115,10 @@ public class Utils {
         if (in == null) throw new IllegalArgumentException("InputStream cannot be null");
 
         ADLFileInfo fi = client.getFileInfo(filename);
-        OutputStream out = fi.createFromStream(overwriteIfExists);
-        byte[] buffer = new byte[4 * 1000 * 1000];
+        ADLFileOutputStream out = fi.createFromStream(overwriteIfExists);
+        int bufSize = 4 * 1000 * 1000;
+        out.setBufferSize(bufSize);
+        byte[] buffer = new byte[bufSize];
         int n;
 
         while ((n=in.read(buffer)) != -1) {

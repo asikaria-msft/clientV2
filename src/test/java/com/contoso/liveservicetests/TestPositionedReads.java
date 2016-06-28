@@ -36,30 +36,18 @@ public class TestPositionedReads {
 
         prop = HelperUtils.getProperties();
         aadToken = AzureADAuthenticator.getTokenUsingClientCreds(prop.getProperty("OAuth2TokenUrl"),
-                prop.getProperty("ClientId"),
-                prop.getProperty("ClientSecret") );
+        prop.getProperty("ClientId"),
+        prop.getProperty("ClientSecret") );
         UUID guid = UUID.randomUUID();
         directory = "/" + prop.getProperty("dirName", "unitTests") + "/" + UUID.randomUUID();
         String account = prop.getProperty("StoreAcct") + ".azuredatalakestore.net";
         client = AzureDataLakeStorageClient.createClient(account, aadToken);
         testsEnabled = Boolean.parseBoolean(prop.getProperty("PositionedReadsTestsEnabled", "true"));
     }
-    
-    private static boolean checkByteAt(long pos, ADLFileInputStream in, byte[] content) throws IOException {
-        in.seek(pos);
-        int expected = content[(int)pos];
-        int actual = in.read();
-        if (actual != expected) {
-            System.out.format("Mismatch at %d: expected %c, found %c\n", pos, expected, actual );
-            return false;
-        } else {
-            return true;
-        }
-    }    
-    
+
     @Test
     public void seekAndCheck() throws IOException {
-        Assume.assumeTrue(false);
+        Assume.assumeTrue(testsEnabled);
         String filename = directory + "/" + "PositionedReads.seekAndCheck.txt";
 
         ADLFileInfo file = client.getFileInfo(filename);  
@@ -88,6 +76,18 @@ public class TestPositionedReads {
         assertTrue("even more seeks - just for good measure",checkByteAt(11, in, content));
         assertTrue("seeks to early offset",checkByteAt(3, in, content));
         assertTrue("seek back to zero after many seeks",checkByteAt(0, in, content));
+    }
+
+    private static boolean checkByteAt(long pos, ADLFileInputStream in, byte[] content) throws IOException {
+        in.seek(pos);
+        int expected = content[(int)pos];
+        int actual = in.read();
+        if (actual != expected) {
+            System.out.format("Mismatch at %d: expected %c, found %c\n", pos, expected, actual );
+            return false;
+        } else {
+            return true;
+        }
     }
 
     @Test
