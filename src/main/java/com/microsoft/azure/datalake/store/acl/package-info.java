@@ -7,7 +7,7 @@
 /**
  * Objects used for ACLs. These objects are used as parameters to the ACL calls in
  * {@link com.microsoft.azure.datalake.store.protocol.Core} and
- * {@link com.microsoft.azure.datalake.store.ADLFileInfo} classes.
+ * {@link com.microsoft.azure.datalake.store.ADLStoreClient} classes.
  *
  */
 package com.microsoft.azure.datalake.store.acl;

@@ -27,7 +27,7 @@ public class ADLFileOutputStream extends OutputStream {
     private static final Logger log = LoggerFactory.getLogger("com.microsoft.azure.datalake.store.ADLFileOutputStream");
 
     private final String filename;
-    private final AzureDataLakeStorageClient client;
+    private final ADLStoreClient client;
     private final boolean isCreate;
     private final boolean overwrite;
 
@@ -39,7 +39,7 @@ public class ADLFileOutputStream extends OutputStream {
     private boolean streamClosed = false;
 
     // package-private constructor - use Factory Method in AzureDataLakeStoreClient
-    ADLFileOutputStream(String filename, AzureDataLakeStorageClient client, boolean isCreate, boolean overwrite ) {
+    ADLFileOutputStream(String filename, ADLStoreClient client, boolean isCreate, boolean overwrite ) {
         super();
         this.overwrite = overwrite;
         this.filename = filename;

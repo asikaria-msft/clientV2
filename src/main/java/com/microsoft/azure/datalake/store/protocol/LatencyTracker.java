@@ -37,7 +37,7 @@ public class LatencyTracker {
       3. error code (if request failed)
       4. Operation
       5. Request+response body Size (if available, zero otherwise)
-      6. Instance of AzureDataLakeStorageClient (a unique number per instance in this VM)
+      6. Instance of ADLStoreClient (a unique number per instance in this VM)
 
      Multiple entries can be on a single request. Entries will be separated by semicolons
      Limit max entries on a single request to three, to limit increase in HTTP request size.

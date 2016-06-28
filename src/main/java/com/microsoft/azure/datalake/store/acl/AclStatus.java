@@ -7,13 +7,11 @@
 package com.microsoft.azure.datalake.store.acl;
 
 
-import com.microsoft.azure.datalake.store.ADLFileInfo;
-
 import java.util.List;
 
 /**
- * Object returned by the {@link ADLFileInfo#getAclStatus() getAclStatus} call, that
- * contains the Acl and Permission information for that file or directory.
+ * Object returned by the {@link com.microsoft.azure.datalake.store.ADLStoreClient#getAclStatus(String)}  getAclStatus}
+ * call, that contains the Acl and Permission information for that file or directory.
  *
  */
 public class AclStatus {

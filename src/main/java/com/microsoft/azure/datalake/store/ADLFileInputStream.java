@@ -39,7 +39,7 @@ public class ADLFileInputStream extends InputStream {
     private static final Logger log = LoggerFactory.getLogger("com.microsoft.azure.datalake.store.ADLFileInputStream");
 
     private final String filename;
-    private final AzureDataLakeStorageClient client;
+    private final ADLStoreClient client;
 
     private int blocksize = 4 * 1024 * 1024;
     private byte[] buffer = new byte[blocksize]; //4MB byte-buffer
@@ -52,7 +52,7 @@ public class ADLFileInputStream extends InputStream {
 
 
     // no constructor - use Factory Method in AzureDataLakeStoreClient
-    ADLFileInputStream(String filename, AzureDataLakeStorageClient client) {
+    ADLFileInputStream(String filename, ADLStoreClient client) {
         super();
         this.filename = filename;
         this.client = client;

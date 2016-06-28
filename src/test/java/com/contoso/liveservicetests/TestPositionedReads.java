@@ -15,18 +15,15 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.*;
-import java.util.regex.Pattern;
 
 public class TestPositionedReads {
     private final UUID instanceGuid = UUID.randomUUID();
 
     private static String directory = null;
-    private static AzureDataLakeStorageClient client = null;
+    private static ADLStoreClient client = null;
     private static boolean testsEnabled = true;
 
     @BeforeClass
@@ -41,7 +38,7 @@ public class TestPositionedReads {
         UUID guid = UUID.randomUUID();
         directory = "/" + prop.getProperty("dirName", "unitTests") + "/" + UUID.randomUUID();
         String account = prop.getProperty("StoreAcct") + ".azuredatalakestore.net";
-        client = AzureDataLakeStorageClient.createClient(account, aadToken);
+        client = ADLStoreClient.createClient(account, aadToken);
         testsEnabled = Boolean.parseBoolean(prop.getProperty("PositionedReadsTestsEnabled", "true"));
     }
 
@@ -50,14 +47,13 @@ public class TestPositionedReads {
         Assume.assumeTrue(testsEnabled);
         String filename = directory + "/" + "PositionedReads.seekAndCheck.txt";
 
-        ADLFileInfo file = client.getFileInfo(filename);  
         boolean overwrite = true;
-        OutputStream stream = file.createFromStream(overwrite);
+        OutputStream stream = client.createFromStream(filename, IfExists.OVERWRITE);
         byte[] content = HelperUtils.getSampleText1();
         stream.write(content);
         stream.close();
 
-        ADLFileInputStream in = file.getReadStream();
+        ADLFileInputStream in = client.getReadStream(filename);
         in.setBufferSize(20);
         assertTrue("should be able to seek past buffer in the beginning",checkByteAt(21, in, content));
         assertTrue("should be able to seek to beginning from anywhere",checkByteAt(0,  in,  content));
@@ -95,9 +91,7 @@ public class TestPositionedReads {
         Assume.assumeTrue(false);
         String filename = directory + "/" + "PositionedReads.resizeBuffer.txt";
 
-        ADLFileInfo file = client.getFileInfo(filename);
-        boolean overwrite = true;
-        OutputStream stream = file.createFromStream(overwrite);
+        OutputStream stream = client.createFromStream(filename, IfExists.OVERWRITE);
         byte[] content = HelperUtils.getSampleText1();
         stream.write(content);
         stream.close();

@@ -7,9 +7,9 @@
 package com.contoso.liveservicetests;
 
 import com.microsoft.azure.datalake.store.ADLException;
+import com.microsoft.azure.datalake.store.ADLStoreClient;
 import com.microsoft.azure.datalake.store.oauth2.AzureADAuthenticator;
 import com.microsoft.azure.datalake.store.oauth2.AzureADToken;
-import com.microsoft.azure.datalake.store.AzureDataLakeStorageClient;
 import com.microsoft.azure.datalake.store.protocol.Core;
 import com.microsoft.azure.datalake.store.protocol.OperationResponse;
 import com.microsoft.azure.datalake.store.protocol.RequestOptions;
@@ -35,7 +35,7 @@ public class TestCore {
     static Properties prop = null;
     static AzureADToken aadToken = null;
     static String directory = null;
-    static AzureDataLakeStorageClient client = null;
+    static ADLStoreClient client = null;
     static boolean testsEnabled = true;
 
 
@@ -48,7 +48,7 @@ public class TestCore {
         UUID guid = UUID.randomUUID();
         directory = "/" + prop.getProperty("dirName") + "/" + UUID.randomUUID();
         String account = prop.getProperty("StoreAcct") + ".azuredatalakestore.net";
-        client = AzureDataLakeStorageClient.createClient(account, aadToken);
+        client = ADLStoreClient.createClient(account, aadToken);
         testsEnabled = Boolean.parseBoolean(prop.getProperty("CoreTestsEnabled", "true"));
     }
 

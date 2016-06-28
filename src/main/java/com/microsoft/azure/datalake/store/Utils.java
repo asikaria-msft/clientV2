@@ -24,12 +24,11 @@ import java.io.*;
  */
 public class Utils {
 
-    private AzureDataLakeStorageClient client;
+    private ADLStoreClient client;
 
-    Utils(AzureDataLakeStorageClient client) {
+    Utils(ADLStoreClient client) {
         this.client = client;
     }
-
 
     /**
      * Check that a file or directory exists.
@@ -42,9 +41,8 @@ public class Utils {
         if (filename == null || filename.trim().equals(""))
             throw new IllegalArgumentException("filename cannot be null");
 
-        ADLFileInfo fi = client.getFileInfo(filename);
         try {
-            fi.getDirectoryEntry();
+            client.getDirectoryEntry(filename);
         } catch (ADLException ex) {
             if (ex.httpResponseCode == 404) return false;
             else throw ex;
@@ -62,8 +60,7 @@ public class Utils {
         if (directoryName == null || directoryName.trim().equals(""))
             throw new IllegalArgumentException("directory name cannot be null");
 
-        ADLFileInfo di = client.getFileInfo(directoryName);
-        boolean succeeded = di.createDirectory();
+        boolean succeeded = client.createDirectory(directoryName);
         if (!succeeded) {
             OperationResponse resp = new OperationResponse();
             throw Core.getExceptionFromResp(resp, "Error creating directory " + directoryName);
@@ -80,8 +77,7 @@ public class Utils {
         if (filename == null || filename.trim().equals(""))
             throw new IllegalArgumentException("filename cannot be null");
 
-        ADLFileInfo fi = client.getFileInfo(filename);
-        OutputStream out = fi.createFromStream(false);
+        OutputStream out = client.createFromStream(filename, IfExists.FAIL);
         out.close();
     }
 
@@ -90,15 +86,16 @@ public class Utils {
      *
      * @param filename path of file to upload to
      * @param localFilename path to local file
-     * @param overwriteIfExists overwrite destination file if it already exists
+     * @param mode {@link IfExists} {@code enum} specifying whether to overwite or throw
+     *                             an exception if the file already exists
      * @throws IOException thrown on error
      */
-    public void upload(String filename, String localFilename, boolean overwriteIfExists) throws IOException  {
+    public void upload(String filename, String localFilename, IfExists mode) throws IOException  {
         if (localFilename == null || localFilename.trim().equals(""))
             throw new IllegalArgumentException("localFilename cannot be null");
 
         FileInputStream in = new FileInputStream(localFilename);
-        upload(filename, in, overwriteIfExists);
+        upload(filename, in, mode);
     }
 
     /**
@@ -106,16 +103,16 @@ public class Utils {
      *
      * @param filename path of file to upload to
      * @param in {@link InputStream} whose contents will be uploaded
-     * @param overwriteIfExists overwrite destination file if it already exists
+     * @param mode {@link IfExists} {@code enum} specifying whether to overwite or throw
+     *                             an exception if the file already exists
      * @throws IOException thrown on error
      */
-    public void upload(String filename, InputStream in, boolean overwriteIfExists) throws IOException {
+    public void upload(String filename, InputStream in, IfExists mode) throws IOException {
         if (filename == null || filename.trim().equals(""))
             throw new IllegalArgumentException("filename cannot be null");
         if (in == null) throw new IllegalArgumentException("InputStream cannot be null");
 
-        ADLFileInfo fi = client.getFileInfo(filename);
-        ADLFileOutputStream out = fi.createFromStream(overwriteIfExists);
+        ADLFileOutputStream out = client.createFromStream(filename, mode);
         int bufSize = 4 * 1000 * 1000;
         out.setBufferSize(bufSize);
         byte[] buffer = new byte[bufSize];
@@ -127,7 +124,6 @@ public class Utils {
         out.close();
         in.close();
     }
-
 
     /**
      * Does an atomic append to the file - the append either succeeds fully, or fails
