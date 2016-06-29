@@ -126,10 +126,10 @@ public class ADLFileOutputStream extends OutputStream {
             }
             Core.create(filename, overwrite, buffer, 0, cursor, client, opts, resp);
             if (!resp.successful) {
-                throw Core.getExceptionFromResp(resp, "Error creating file " + filename);
+                throw Core.getExceptionFromResp(client, resp, "Error creating file " + filename);
             }
             created = true;
-        } else if (cursor > 0){  // if there is anything to flush
+        } else {
             RequestOptions opts = new RequestOptions();
             opts.retryPolicy = new NoRetryPolicy();
             OperationResponse resp = new OperationResponse();
@@ -138,7 +138,7 @@ public class ADLFileOutputStream extends OutputStream {
             }
             Core.append(filename, buffer, 0, cursor, client, opts, resp);
             if (!resp.successful) {
-                throw Core.getExceptionFromResp(resp, "Error appending to file " + filename);
+                throw Core.getExceptionFromResp(client, resp, "Error appending to file " + filename);
             }
         }
         cursor = 0;
@@ -148,7 +148,7 @@ public class ADLFileOutputStream extends OutputStream {
      * Sets the size of the internal write buffer (default is 4MB).
      *
      * @param newSize requested size of buffer
-     * @throws ADLException if there is an error
+     * @throws IOException throws {@link ADLException} if there is an error
      */
     public void setBufferSize(int newSize) throws IOException {
         if (newSize <=0) throw new IllegalArgumentException("Buffer size cannot be zero or less: " + newSize);

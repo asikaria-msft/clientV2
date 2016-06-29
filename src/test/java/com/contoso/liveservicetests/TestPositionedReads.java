@@ -48,7 +48,7 @@ public class TestPositionedReads {
         String filename = directory + "/" + "PositionedReads.seekAndCheck.txt";
 
         boolean overwrite = true;
-        OutputStream stream = client.createFromStream(filename, IfExists.OVERWRITE);
+        OutputStream stream = client.createOutputStream(filename, IfExists.OVERWRITE);
         byte[] content = HelperUtils.getSampleText1();
         stream.write(content);
         stream.close();
@@ -91,7 +91,7 @@ public class TestPositionedReads {
         Assume.assumeTrue(false);
         String filename = directory + "/" + "PositionedReads.resizeBuffer.txt";
 
-        OutputStream stream = client.createFromStream(filename, IfExists.OVERWRITE);
+        OutputStream stream = client.createOutputStream(filename, IfExists.OVERWRITE);
         byte[] content = HelperUtils.getSampleText1();
         stream.write(content);
         stream.close();

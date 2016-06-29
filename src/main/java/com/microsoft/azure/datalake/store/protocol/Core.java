@@ -35,7 +35,8 @@ import java.util.regex.Pattern;
  * {@link OperationResponse} is used for passing the call results and stats back from the call.
  * </P><P>
  * Failures originating in Core methods are communicated back through the {@link OperationResponse} parameter,
- * not through exceptions. There is a convenience method ({@link #getExceptionFromResp(OperationResponse, String) getExceptionFromResp})
+ * not through exceptions. There is a convenience method
+ * ({@link #getExceptionFromResp(ADLStoreClient, OperationResponse, String) getExceptionFromResp})
  * to generate an exception from the response, if the response indicates a failure.
  * </P><P>
  * <B>Thread Safety: </B> all static methods in this class are thread-safe
@@ -905,51 +906,33 @@ public class Core {
         }
     }
 
-
-
     /**
      * creates an {@link ADLException} from {@link OperationResponse}.
      *
      * @param resp the {@link OperationResponse} to convert to exception
+     * @param client the {@link ADLStoreClient} that generated the response
      * @param defaultMessage message to use if the inner exception does not have a text message.
      * @return the {@link ADLException}, or {@code null} if the {@code resp.successful} is {@code true}
      */
-    public static ADLException getExceptionFromResp(OperationResponse resp, String defaultMessage) {
-        String msg = (resp.message == null) ? defaultMessage : resp.message;
-        ADLException ex = new ADLException(msg);
-        copyResponseToADLException(resp, ex);
-        return ex;
-    }
-
-    /**
-     * copies values from {@link OperationResponse} to {@link ADLException}.
-     * @param resp the {@link OperationResponse} to copy from
-     * @param ex the {@link ADLException} to copy to
-     *
-     * Throws NullPointerException if either of the input parameters are null
-     */
-    private static void copyResponseToADLException(OperationResponse resp, ADLException ex) {
-        if (resp == null || ex == null) throw new NullPointerException("input parameters cannot be null");
-
-        ex.httpResponseCode = resp.httpResponseCode;
-        ex.httpResponseMessage = resp.httpResponseMessage;
-        ex.requestId = resp.requestId;
-
-        ex.numRetries = resp.numRetries;
-        ex.lastCallLatency = resp.lastCallLatency;
-        ex.responseContentLength = resp.responseContentLength;
-
-        ex.remoteExceptionName = resp.remoteExceptionName;
-        ex.remoteExceptionMessage = resp.remoteExceptionMessage;
-        ex.remoteExceptionJavaClassName = resp.remoteExceptionJavaClassName;
-
-        if (    resp.ex == null &&
-                ex.getCause() == null &&
-                ex.remoteExceptionJavaClassName !=null &&
-                !ex.remoteExceptionJavaClassName.equals("")) {
-            ex.initCause(getRemoteException(ex.remoteExceptionJavaClassName, ex.remoteExceptionMessage));
+    public static IOException getExceptionFromResp(ADLStoreClient client, OperationResponse resp, String defaultMessage) {
+        if (client.remoteExceptionsEnabled() &&
+            resp.remoteExceptionJavaClassName !=null &&
+            !resp.remoteExceptionJavaClassName.equals("")) {
+                return getRemoteException(resp.remoteExceptionJavaClassName, resp.remoteExceptionMessage);
         } else {
+            String msg = (resp.message == null) ? defaultMessage : resp.message;
+            ADLException ex = new ADLException(msg);
+            ex.httpResponseCode = resp.httpResponseCode;
+            ex.httpResponseMessage = resp.httpResponseMessage;
+            ex.requestId = resp.requestId;
+            ex.numRetries = resp.numRetries;
+            ex.lastCallLatency = resp.lastCallLatency;
+            ex.responseContentLength = resp.responseContentLength;
+            ex.remoteExceptionName = resp.remoteExceptionName;
+            ex.remoteExceptionMessage = resp.remoteExceptionMessage;
+            ex.remoteExceptionJavaClassName = resp.remoteExceptionJavaClassName;
             ex.initCause(resp.ex);
+            return ex;
         }
     }
 

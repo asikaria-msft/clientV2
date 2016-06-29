@@ -60,7 +60,7 @@ public class TestFileSdk {
         String filename = directory + "/" + "Sdk.createEmptyFile.txt";
 
         // write some text to file
-        OutputStream out = client.createFromStream(filename, IfExists.OVERWRITE);
+        OutputStream out = client.createOutputStream(filename, IfExists.OVERWRITE);
         out.close();
 
         // read text from file
@@ -84,7 +84,7 @@ public class TestFileSdk {
 
         // write some text to file
         byte [] contents = HelperUtils.getSampleText1();
-        OutputStream out = client.createFromStream(filename, IfExists.FAIL);
+        OutputStream out = client.createOutputStream(filename, IfExists.FAIL);
         out.write(contents);
         out.close();
 
@@ -110,13 +110,13 @@ public class TestFileSdk {
 
         // write some text to file
         byte [] contents = HelperUtils.getSampleText1();
-        OutputStream out = client.createFromStream(filename, IfExists.FAIL);
+        OutputStream out = client.createOutputStream(filename, IfExists.FAIL);
         out.write(contents);
         out.close();
 
         // overwrite the text with new text - SHOULD FAIL since file already exists
         contents = HelperUtils.getSampleText2();
-        out = client.createFromStream(filename, IfExists.FAIL);
+        out = client.createOutputStream(filename, IfExists.FAIL);
         out.write(contents);
         out.close();  //  <<-- FAIL here
     }
@@ -128,13 +128,13 @@ public class TestFileSdk {
 
         // write some text to file
         byte [] contents = HelperUtils.getSampleText1();
-        OutputStream out = client.createFromStream(filename, IfExists.OVERWRITE);
+        OutputStream out = client.createOutputStream(filename, IfExists.OVERWRITE);
         out.write(contents);
         out.close();
 
         // overwrite the text with new text
         contents = HelperUtils.getSampleText2();
-        out = client.createFromStream(filename, IfExists.OVERWRITE);
+        out = client.createOutputStream(filename, IfExists.OVERWRITE);
         out.write(contents);
         out.close();
 
@@ -160,7 +160,7 @@ public class TestFileSdk {
 
         // write some text to file
         byte [] contents = HelperUtils.getSampleText1();
-        OutputStream out = client.createFromStream(filename, IfExists.OVERWRITE);
+        OutputStream out = client.createOutputStream(filename, IfExists.OVERWRITE);
         out.write(contents);
         out.close();
 
@@ -186,7 +186,7 @@ public class TestFileSdk {
 
         // write some text to file
         byte [] contents = HelperUtils.getRandomBuffer(11 * 1024 * 1024);
-        OutputStream out = client.createFromStream(filename, IfExists.OVERWRITE);
+        OutputStream out = client.createOutputStream(filename, IfExists.OVERWRITE);
         out.write(contents);
         out.close();
 
@@ -212,7 +212,7 @@ public class TestFileSdk {
 
         // do three 4mb writes
         byte [] contents = HelperUtils.getRandom4mbBuffer();
-        OutputStream out = client.createFromStream(filename, IfExists.OVERWRITE);
+        OutputStream out = client.createOutputStream(filename, IfExists.OVERWRITE);
         ByteArrayOutputStream bos = new ByteArrayOutputStream(contents.length*3);
         for (int i = 0; i<3; i++) {
             out.write(contents);
@@ -244,7 +244,7 @@ public class TestFileSdk {
 
         // write a small text many times to file, creating a large file (multiple 4MB chunks + partial chunk)
         byte [] contents = HelperUtils.getSampleText1();
-        OutputStream out = client.createFromStream(filename, IfExists.OVERWRITE);
+        OutputStream out = client.createOutputStream(filename, IfExists.OVERWRITE);
         ByteArrayOutputStream bos = new ByteArrayOutputStream(13000*742);
         for (int i = 0; i<13000; i++) {  // 742 bytes * 13000 == 9.2MB upload total
             out.write(contents);
@@ -276,7 +276,7 @@ public class TestFileSdk {
 
         // write a small text many times to file, creating a large file (multiple 4MB chunks + partial chunk)
         byte [] contents = HelperUtils.getSampleText1();
-        ADLFileOutputStream adlout = client.createFromStream(filename, IfExists.OVERWRITE);
+        ADLFileOutputStream adlout = client.createOutputStream(filename, IfExists.OVERWRITE);
         OutputStream out = adlout;
 
 
@@ -309,6 +309,46 @@ public class TestFileSdk {
         assertTrue("file contents should match", Arrays.equals(b1, b3));
     }
 
+
+    @Test(expected = ADLException.class)
+    public void testAppendNonexistentFile() throws IOException {
+        Assume.assumeTrue(testsEnabled);
+        String filename = directory + "/" + "Sdk.testAppendNonexistentFile.txt";
+
+        OutputStream out = client.getAppendStream(filename);
+        out.close();
+    }
+
+    @Test(expected = ADLException.class)
+    public void testAppendEmptyFile() throws IOException {
+        Assume.assumeTrue(testsEnabled);
+        String filename = directory + "/" + "Sdk.testAppendEmptyFile.txt";
+
+        // create empty file
+        client.utils.createEmptyFile(filename);
+
+        // append some content into it
+        OutputStream out = client.getAppendStream(filename);
+        byte [] contents = HelperUtils.getSampleText1();
+        out.write(contents);
+        out.close();
+
+        // read file contents
+        InputStream in = client.getReadStream(filename);
+        byte[] b2 = new byte[742*4]; // double the size, to account for possible bloat due to bug in upload
+        int bytesRead;
+        int count = 0;
+        while ((bytesRead = in.read(b2, count, b2.length-count)) >=0 && count<=b2.length ) {
+            count += bytesRead;
+        }
+
+        // verify what was read is identical to what was written
+        assertTrue("file length should match what was written", contents.length == count);
+        byte[] b3 = Arrays.copyOfRange(b2, 0, count);
+        assertTrue("file contents should match", Arrays.equals(contents, b3));
+
+    }
+
     @Test(expected = ADLException.class)
     public void concatZeroFiles() throws IOException {
         Assume.assumeTrue(testsEnabled);
@@ -327,7 +367,7 @@ public class TestFileSdk {
 
         // write some text to file
         byte [] contents = HelperUtils.getSampleText1();
-        OutputStream out = client.createFromStream(fn1, IfExists.OVERWRITE);
+        OutputStream out = client.createOutputStream(fn1, IfExists.OVERWRITE);
         out.write(contents);
         out.close();
 
@@ -353,18 +393,17 @@ public class TestFileSdk {
     @Test(expected = ADLException.class)
     public void concatSingleFileOntoItself() throws IOException {
         Assume.assumeTrue(testsEnabled);
-        String fn1 = directory + "/" + "Sdk.concatSingleFileOntoItselclient.txt";
-        String fn2 = directory + "/" + "Sdk.concatSingleFileOntoItself-c.txt";
+        String filename = directory + "/" + "Sdk.concatSingleFileOntoItself.txt";
 
         // write some text to file
         byte [] contents = HelperUtils.getSampleText1();
-        OutputStream out = client.createFromStream(fn1, IfExists.OVERWRITE);
+        OutputStream out = client.createOutputStream(filename, IfExists.OVERWRITE);
         out.write(contents);
         out.close();
 
         // concatenate single file
-        List<String> flist = Arrays.asList(fn1);
-        client.concatenateFiles(fn2, flist);
+        List<String> flist = Arrays.asList(filename);
+        client.concatenateFiles(filename, flist);
     }
 
 
@@ -379,14 +418,14 @@ public class TestFileSdk {
 
         // write some text to file
         byte [] contents = HelperUtils.getSampleText1();
-        OutputStream out = client.createFromStream(fn1, IfExists.OVERWRITE);
+        OutputStream out = client.createOutputStream(fn1, IfExists.OVERWRITE);
         out.write(contents);
         bos.write(contents);
         out.close();
 
         // write text to another file
         contents = HelperUtils.getSampleText2();
-        out = client.createFromStream(fn2, IfExists.OVERWRITE);
+        out = client.createOutputStream(fn2, IfExists.OVERWRITE);
         out.write(contents);
         bos.write(contents);
         out.close();
@@ -425,19 +464,19 @@ public class TestFileSdk {
 
         // write some text to file
         byte [] contents = HelperUtils.getSampleText1();
-        OutputStream out = client.createFromStream(fn1, IfExists.OVERWRITE);
+        OutputStream out = client.createOutputStream(fn1, IfExists.OVERWRITE);
         out.write(contents);
         bos.write(contents);
         out.close();
 
         contents = HelperUtils.getSampleText2();
-        out = client.createFromStream(fn2, IfExists.OVERWRITE);
+        out = client.createOutputStream(fn2, IfExists.OVERWRITE);
         out.write(contents);
         bos.write(contents);
         out.close();
 
         contents = HelperUtils.getRandomBuffer(1024);
-        out = client.createFromStream(fn3, IfExists.OVERWRITE);
+        out = client.createOutputStream(fn3, IfExists.OVERWRITE);
         out.write(contents);
         bos.write(contents);
         out.close();
@@ -472,7 +511,7 @@ public class TestFileSdk {
 
         // write some text to file
         byte [] contents = HelperUtils.getSampleText1();
-        OutputStream out = client.createFromStream(filename, IfExists.OVERWRITE);
+        OutputStream out = client.createOutputStream(filename, IfExists.OVERWRITE);
         out.write(contents);
         out.close();
 
@@ -496,7 +535,7 @@ public class TestFileSdk {
     }
 
     @Test
-    public void renameNonExistentFile() throws ADLException {
+    public void renameNonExistentFile() throws IOException {
         Assume.assumeTrue(testsEnabled);
         String filename = directory + "/" + "Sdk.renameNonExistentFile.txt";
         String fnr = directory + "/" + "Sdk.renameNonExistentFile-r.txt";
@@ -512,7 +551,7 @@ public class TestFileSdk {
 
         // write some text to file
         byte [] contents = HelperUtils.getSampleText1();
-        OutputStream out = client.createFromStream(filename, IfExists.OVERWRITE);
+        OutputStream out = client.createOutputStream(filename, IfExists.OVERWRITE);
         out.write(contents);
         out.close();
 
@@ -521,7 +560,7 @@ public class TestFileSdk {
     }
 
     @Test
-    public void deleteNonExistentFile() throws ADLException {
+    public void deleteNonExistentFile() throws IOException {
         Assume.assumeTrue(testsEnabled);
         String filename = directory + "/" + "Sdk.deleteNonExistentFile.txt";
 
@@ -536,7 +575,7 @@ public class TestFileSdk {
 
         // write some text to file
         byte [] contents = HelperUtils.getSampleText1();
-        OutputStream out = client.createFromStream(filename, IfExists.OVERWRITE);
+        OutputStream out = client.createOutputStream(filename, IfExists.OVERWRITE);
         out.write(contents);
         out.close();
 
@@ -559,7 +598,7 @@ public class TestFileSdk {
         }
 
         byte [] contents = HelperUtils.getSampleText1();
-        OutputStream out = client.createFromStream(filename, IfExists.OVERWRITE);
+        OutputStream out = client.createOutputStream(filename, IfExists.OVERWRITE);
         out.write(contents);
         try {
             d = client.getDirectoryEntry(filename);
@@ -620,13 +659,13 @@ public class TestFileSdk {
 
         String fn1 = dirname + "/a/b/c/f1.txt";
         byte [] contents = HelperUtils.getSampleText1();
-        OutputStream out = client.createFromStream(fn1, IfExists.OVERWRITE);
+        OutputStream out = client.createOutputStream(fn1, IfExists.OVERWRITE);
         out.write(contents);
         out.close();
 
         String fn2 = dirname + "/a/b/f2.txt";
         contents = HelperUtils.getSampleText2();
-        out = client.createFromStream(fn2, IfExists.OVERWRITE);
+        out = client.createOutputStream(fn2, IfExists.OVERWRITE);
         out.write(contents);
         out.close();
 
@@ -649,13 +688,13 @@ public class TestFileSdk {
 
         String fn1 = dirname + "/a/b/c/f1.txt";
         byte [] contents = HelperUtils.getSampleText1();
-        OutputStream out = client.createFromStream(fn1, IfExists.OVERWRITE);
+        OutputStream out = client.createOutputStream(fn1, IfExists.OVERWRITE);
         out.write(contents);
         out.close();
 
         String fn2 = dirname + "/a/b/f2.txt";
         contents = HelperUtils.getSampleText2();
-        out = client.createFromStream(fn2, IfExists.OVERWRITE);
+        out = client.createOutputStream(fn2, IfExists.OVERWRITE);
         out.write(contents);
         out.close();
 

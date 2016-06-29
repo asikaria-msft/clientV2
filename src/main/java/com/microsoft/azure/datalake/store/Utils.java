@@ -18,9 +18,6 @@ import java.io.*;
  *
  * The methods are all based on calls to the SDK methods, these are
  * just convenience methods for common tasks.
- *
- *
- *
  */
 public class Utils {
 
@@ -35,9 +32,9 @@ public class Utils {
      *
      * @param filename path to check
      * @return true if the path exists, false otherwise
-     * @throws ADLException thrown on error
+     * @throws IOException thrown on error
      */
-    public boolean checkExists(String filename) throws ADLException {
+    public boolean checkExists(String filename) throws IOException {
         if (filename == null || filename.trim().equals(""))
             throw new IllegalArgumentException("filename cannot be null");
 
@@ -51,23 +48,6 @@ public class Utils {
     }
 
     /**
-     * Creates a directory.
-     *
-     * @param directoryName name of the directory to create.
-     * @throws ADLException thrown on error
-     */
-    public void createDirectory(String directoryName) throws ADLException {
-        if (directoryName == null || directoryName.trim().equals(""))
-            throw new IllegalArgumentException("directory name cannot be null");
-
-        boolean succeeded = client.createDirectory(directoryName);
-        if (!succeeded) {
-            OperationResponse resp = new OperationResponse();
-            throw Core.getExceptionFromResp(resp, "Error creating directory " + directoryName);
-        }
-    }
-
-    /**
      * Creates an empty file.
      *
      * @param filename name of file to create.
@@ -77,7 +57,7 @@ public class Utils {
         if (filename == null || filename.trim().equals(""))
             throw new IllegalArgumentException("filename cannot be null");
 
-        OutputStream out = client.createFromStream(filename, IfExists.FAIL);
+        OutputStream out = client.createOutputStream(filename, IfExists.FAIL);
         out.close();
     }
 
@@ -112,7 +92,7 @@ public class Utils {
             throw new IllegalArgumentException("filename cannot be null");
         if (in == null) throw new IllegalArgumentException("InputStream cannot be null");
 
-        ADLFileOutputStream out = client.createFromStream(filename, mode);
+        ADLFileOutputStream out = client.createOutputStream(filename, mode);
         int bufSize = 4 * 1000 * 1000;
         out.setBufferSize(bufSize);
         byte[] buffer = new byte[bufSize];
@@ -134,10 +114,10 @@ public class Utils {
      * @param filename name of file to append to
      * @param bytesToAppend
      *          the byte buffer to append. Max buffer size can be 4MB (4*1024*1024).
-     * @throws ADLException thrown if there is an error in upload
+     * @throws IOException {@link ADLException} thrown if there is an error in upload
      * @throws IllegalArgumentException thrown if the buffer provided is larger than 4MB, or input filename is null
      */
-    public void appendBytes(String filename, byte[] bytesToAppend) throws IllegalArgumentException, ADLException {
+    public void appendBytes(String filename, byte[] bytesToAppend) throws IllegalArgumentException, IOException {
         if (filename == null || filename.trim().equals(""))
             throw new IllegalArgumentException("filename cannot be null");
         if (bytesToAppend == null || bytesToAppend.length == 0)  return; // nothing to append
@@ -148,7 +128,7 @@ public class Utils {
         OperationResponse resp = new OperationResponse();
         Core.concurrentAppend(filename, bytesToAppend, 0, bytesToAppend.length, true, client, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(resp, "Error appending to file " + filename);
+            throw Core.getExceptionFromResp(client, resp, "Error appending to file " + filename);
         }
     }
 }
