@@ -319,7 +319,7 @@ public class TestFileSdk {
         out.close();
     }
 
-    @Test(expected = ADLException.class)
+    @Test
     public void testAppendEmptyFile() throws IOException {
         Assume.assumeTrue(testsEnabled);
         String filename = directory + "/" + "Sdk.testAppendEmptyFile.txt";
@@ -680,6 +680,28 @@ public class TestFileSdk {
             if (ex.httpResponseCode!=404) throw ex;
         }
     }
+
+    @Test(expected = IOException.class)
+    public void deleteDirNonRecursiveNonEmpty() throws IOException {
+        Assume.assumeTrue(testsEnabled);
+        String dirname = directory + "/" + "deleteDirNonRecursiveNonEmpty";
+
+        String fn1 = dirname + "/a/b/c/f1.txt";
+        byte[] contents = HelperUtils.getSampleText1();
+        OutputStream out = client.createOutputStream(fn1, IfExists.OVERWRITE);
+        out.write(contents);
+        out.close();
+
+        String fn2 = dirname + "/a/b/f2.txt";
+        contents = HelperUtils.getSampleText2();
+        out = client.createOutputStream(fn2, IfExists.OVERWRITE);
+        out.write(contents);
+        out.close();
+
+        String parentDir = dirname + "/a";
+        client.delete(parentDir);
+    }
+    
 
     @Test(expected = ADLException.class)
     public void deleteDirectoryNonRecursive() throws IOException {

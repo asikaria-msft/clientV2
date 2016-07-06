@@ -939,7 +939,7 @@ public class Core {
     private static IOException getRemoteException(String className, String message) {
         try {
             Class clazz = Class.forName(className);
-            if (!clazz.isInstance(IOException.class)) { return new IOException(message); }
+            if (!IOException.class.isAssignableFrom(clazz)) { return new IOException(message); }
             Constructor c = clazz.getConstructor(String.class);
             return (IOException) c.newInstance(message);
         } catch (Exception ex) {
