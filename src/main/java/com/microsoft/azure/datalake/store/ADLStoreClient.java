@@ -169,9 +169,15 @@ public class ADLStoreClient {
      *
      * @param path full pathname of file to read
      * @return {@link ADLFileInputStream} to read the file contents from.
+     * @throws IOException {@link ADLException} is thrown if there is an error in opening the file
      */
-    public ADLFileInputStream getReadStream(String path) {
-        return new ADLFileInputStream(path, this);
+    public ADLFileInputStream getReadStream(String path) throws IOException {
+        DirectoryEntry de = getDirectoryEntry(path);
+        if (de.type == DirectoryEntryType.FILE) {
+            return new ADLFileInputStream(path, de, this);
+        } else {
+            throw new ADLException("Path is not a file: " + path);
+        }
     }
 
     /**

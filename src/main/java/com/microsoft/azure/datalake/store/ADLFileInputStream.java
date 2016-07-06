@@ -13,6 +13,7 @@ import com.microsoft.azure.datalake.store.retrypolicies.ExponentialOnThrottlePol
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -40,6 +41,7 @@ public class ADLFileInputStream extends InputStream {
 
     private final String filename;
     private final ADLStoreClient client;
+    private final DirectoryEntry directoryEntry;
 
     private int blocksize = 4 * 1024 * 1024;
     private byte[] buffer = new byte[blocksize]; //4MB byte-buffer
@@ -52,10 +54,11 @@ public class ADLFileInputStream extends InputStream {
 
 
     // no constructor - use Factory Method in AzureDataLakeStoreClient
-    ADLFileInputStream(String filename, ADLStoreClient client) {
+    ADLFileInputStream(String filename, DirectoryEntry de, ADLStoreClient client) {
         super();
         this.filename = filename;
         this.client = client;
+        this.directoryEntry = de;
         if (log.isTraceEnabled()) {
             log.trace("ADLFIleInputStream created for client {} for file {}", client.getClientId(), filename);
         }
@@ -79,7 +82,7 @@ public class ADLFileInputStream extends InputStream {
 
     @Override
     public int read(byte[] b, int off, int len) throws IOException {
-        if (streamClosed) throw new IOException("attempting to read from a closed stream;");
+        if (streamClosed) throw new IOException("attempting to read from a closed stream");
         if (b == null) {
             throw new NullPointerException();
         }
@@ -119,6 +122,7 @@ public class ADLFileInputStream extends InputStream {
      */
     protected long readFromService() throws IOException {
         if (bCursor < limit) return 0; //if there's still unread data in the buffer then dont overwrite it
+        if (fCursor >= directoryEntry.length) return -1; // At or past end of file
 
         if (log.isTraceEnabled()) {
             log.trace("read from server at offset {} using client {} from file {}", getPos(), client.getClientId(), filename);
@@ -144,7 +148,7 @@ public class ADLFileInputStream extends InputStream {
         try {
             do {
                 bytesRead = str.read(buffer, limit, blocksize - limit);
-                if (bytesRead > 0) { // if not EOF
+                if (bytesRead > 0) { // if not EOF of the Core.open's stream
                     limit += bytesRead;
                     fCursor += bytesRead;
                     totalBytesRead += bytesRead;
@@ -160,60 +164,44 @@ public class ADLFileInputStream extends InputStream {
     /**
      * Seek to given position in stream.
      * @param n position to seek to
-     * @return actual position after the seek. This may differ from the requested position.
      * @throws IOException if there is an error
+     * @throws EOFException if attempting to seek past end of file
      */
-    public long seek(long n) throws IOException {
+    public void seek(long n) throws IOException, EOFException {
         if (log.isTraceEnabled()) {
             log.trace("begin seek to offset {} using client {} from file {}", n, client.getClientId(), filename);
         }
-        long skiplength = n - getPos();
-        skip(skiplength);
-        return getPos();
+        if (streamClosed) throw new IOException("attempting to seek into a closed stream;");
+        if (n<0) throw new IllegalArgumentException("Cannot seek to before the beginning of file");
+        if (n>directoryEntry.length) throw new EOFException("Cannot seek past end of file");
+
+        if (n>=fCursor-limit && n<=fCursor) { // within buffer
+            bCursor = (int) (n-(fCursor-limit));
+            return;
+        }
+
+        // next read will read from here
+        fCursor = n;
+
+        //invalidate buffer
+        limit = 0;
+        bCursor = 0;
     }
 
     @Override
     public long skip(long n) throws IOException {
-        if (streamClosed) throw new IOException("attempting to read from a closed stream;");
-        if (n==0) return 0;
-        if (n < -getPos()) throw new IllegalArgumentException("Cannot seek past beginning of file");
-        // cannot do corresponding check for end of file, because we dont know length without doing a server call
-
-        if (log.isTraceEnabled()) {
-            log.trace("begin skip by {} using client {} from file {}", n, client.getClientId(), filename);
+        if (streamClosed) throw new IOException("attempting to skip() on a closed stream;");
+        long currentPos = getPos();
+        long newPos = currentPos + n;
+        if (newPos < 0) {
+            newPos = 0;
+            n = newPos - currentPos;
         }
-
-        if (n<0) {
-            int max = -bCursor; // max distance we can go back within buffer
-            if (n<max) { // if past beginning of buffer, then need to seek from server. Invalidate buffer and read
-                fCursor = getPos() + n; // n is -ve
-                limit=0;
-                bCursor = 0;
-                readFromService();
-            } else {  // within buffer; all we need to do is reset the buffer pointer backwards
-                bCursor += n; // n is -ve
-            }
-            return n;
+        if (newPos > directoryEntry.length) {
+            newPos = directoryEntry.length;
+            n = newPos - currentPos;
         }
-
-        // at this point n>0, since we've already checked for <0 and ==0
-        if (bCursor + n <= limit) { // within buffer; all we need to do is reset the buffer pointer
-            bCursor += n;
-        } else {  // past end of buffer; read from server.
-            int oldLimit = limit;
-            int oldBCursor = bCursor;
-            long oldFCursor = fCursor;
-            fCursor = getPos() + n;
-            limit=0;
-            bCursor = 0;
-            if (readFromService()<0)
-            {   // past end of file. restore state and report zero movement
-                limit = oldLimit;
-                bCursor = oldBCursor;
-                fCursor = oldFCursor;
-                return 0;
-            }
-        }
+        seek(newPos);
         return n;
     }
 

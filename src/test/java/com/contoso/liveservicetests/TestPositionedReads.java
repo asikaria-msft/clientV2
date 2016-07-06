@@ -96,6 +96,15 @@ public class TestPositionedReads {
         stream.write(content);
         stream.close();
 
+        ADLFileInputStream instr = client.getReadStream(filename);
+        byte[] b1 = new byte[200];
+        instr.read(b1);
+
+        instr.setBufferSize(87);
+        instr.read(b1);
+
+
+
         assertTrue("This test needs to be finished", false);
     }
 

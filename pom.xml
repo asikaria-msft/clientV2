@@ -58,6 +58,9 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>2.10.4</version>
+        <configuration>
+          <quiet>true</quiet>  <!-- only show warnings and errors during build -->
+        </configuration>
         <executions>
           <execution>
             <id>attach-javadocs</id>
@@ -119,6 +122,11 @@
       <artifactId>junit</artifactId>
       <version>4.12</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-nop</artifactId>
+      <version>1.7.21</version>
     </dependency>
     <dependency>
       <groupId>com.squareup.okhttp3</groupId>

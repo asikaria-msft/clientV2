@@ -56,7 +56,7 @@ public class TestFileSdk {
 
     @Test
     public void createEmptyFile() throws IOException {
-        Assume.assumeTrue(false);   // TODO: There is a bug in reading empty files
+        Assume.assumeTrue(testsEnabled);
         String filename = directory + "/" + "Sdk.createEmptyFile.txt";
 
         // write some text to file
@@ -79,7 +79,7 @@ public class TestFileSdk {
 
     @Test
     public void smallFileNoOverwrite() throws IOException {
-        Assume.assumeTrue(true);
+        Assume.assumeTrue(testsEnabled);
         String filename = directory + "/" + "Sdk.smallFileNoOverwrite.txt";
 
         // write some text to file
@@ -181,7 +181,7 @@ public class TestFileSdk {
 
     @Test
     public void large11MBWrite() throws IOException {
-        Assume.assumeTrue(false);
+        Assume.assumeTrue(testsEnabled);
         String filename = directory + "/" + "Sdk.large11MBWrite.txt";
 
         // write some text to file
@@ -207,7 +207,7 @@ public class TestFileSdk {
 
     @Test
     public void multiple4Mbwrites() throws IOException {
-        Assume.assumeTrue(false);
+        Assume.assumeTrue(testsEnabled);
         String filename = directory + "/" + "Sdk.multiple4Mbwrites.txt";
 
         // do three 4mb writes
@@ -239,7 +239,7 @@ public class TestFileSdk {
 
     @Test
     public void createFileAndDoManySmallWrites() throws IOException {
-        Assume.assumeTrue(false);
+        Assume.assumeTrue(testsEnabled);
         String filename = directory + "/" + "Sdk.CreateFileAndDoManySmallWrites.txt";
 
         // write a small text many times to file, creating a large file (multiple 4MB chunks + partial chunk)
