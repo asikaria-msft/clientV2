@@ -126,7 +126,7 @@ public class ADLFileOutputStream extends OutputStream {
             }
             Core.create(filename, overwrite, buffer, 0, cursor, client, opts, resp);
             if (!resp.successful) {
-                throw client.getExceptionCreator().getExceptionFromResp(client, resp, "Error creating file " + filename);
+                throw Core.getExceptionFromResp(client, resp, "Error creating file " + filename);
             }
             created = true;
         } else {
@@ -138,7 +138,7 @@ public class ADLFileOutputStream extends OutputStream {
             }
             Core.append(filename, buffer, 0, cursor, client, opts, resp);
             if (!resp.successful) {
-                throw client.getExceptionCreator().getExceptionFromResp(client, resp, "Error appending to file " + filename);
+                throw Core.getExceptionFromResp(client, resp, "Error appending to file " + filename);
             }
         }
         cursor = 0;

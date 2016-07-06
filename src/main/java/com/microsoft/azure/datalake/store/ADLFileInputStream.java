@@ -137,7 +137,7 @@ public class ADLFileInputStream extends InputStream {
             resp.successful = true;
             return -1; //End-of-file
         }
-        if (!resp.successful) throw client.getExceptionCreator().getExceptionFromResp(client, resp, "Error reading from file " + filename);
+        if (!resp.successful) throw Core.getExceptionFromResp(client, resp, "Error reading from file " + filename);
         if (resp.responseContentLength == 0 && !resp.responseChunked) return 0;  //Got nothing
         int bytesRead;
         int totalBytesRead = 0;
