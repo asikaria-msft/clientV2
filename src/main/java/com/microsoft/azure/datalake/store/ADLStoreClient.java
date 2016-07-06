@@ -9,6 +9,7 @@ package com.microsoft.azure.datalake.store;
 
 import com.microsoft.azure.datalake.store.acl.AclEntry;
 import com.microsoft.azure.datalake.store.acl.AclStatus;
+import com.microsoft.azure.datalake.store.exceptions.ExceptionCreator;
 import com.microsoft.azure.datalake.store.oauth2.AccessTokenProvider;
 import com.microsoft.azure.datalake.store.oauth2.AzureADToken;
 import com.microsoft.azure.datalake.store.protocol.Core;
@@ -201,7 +202,7 @@ public class ADLStoreClient {
         OperationResponse resp = new OperationResponse();
         Core.concat(path, fileList, this, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(this, resp, "Error concatenating files into " + path);
+            throw getExceptionCreator().getExceptionFromResp(this, resp, "Error concatenating files into " + path);
         }
         return true;
     }
@@ -310,7 +311,7 @@ public class ADLStoreClient {
         OperationResponse resp = new OperationResponse();
         List<DirectoryEntry> dirEnt  = Core.listStatus(path, startAfter, endBefore, maxEntriesToRetrieve, this, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(this, resp, "Error enumerating directory " + path);
+            throw getExceptionCreator().getExceptionFromResp(this, resp, "Error enumerating directory " + path);
         }
         return dirEnt;
     }
@@ -340,7 +341,7 @@ public class ADLStoreClient {
         OperationResponse resp = new OperationResponse();
         boolean succeeded = Core.mkdirs(path, octalPermission, this, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(this, resp, "Error creating directory " + path);
+            throw getExceptionCreator().getExceptionFromResp(this, resp, "Error creating directory " + path);
         }
         return succeeded;
     }
@@ -358,7 +359,7 @@ public class ADLStoreClient {
         OperationResponse resp = new OperationResponse();
         boolean succeeded = Core.delete(path, true, this, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(this, resp, "Error deleting directory tree " + path);
+            throw getExceptionCreator().getExceptionFromResp(this, resp, "Error deleting directory tree " + path);
         }
         return succeeded;
     }
@@ -376,7 +377,7 @@ public class ADLStoreClient {
         OperationResponse resp = new OperationResponse();
         Core.removeDefaultAcl(path, this, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(this, resp, "Error removing default ACLs for directory " + path);
+            throw getExceptionCreator().getExceptionFromResp(this, resp, "Error removing default ACLs for directory " + path);
         }
     }
 
@@ -419,7 +420,7 @@ public class ADLStoreClient {
         OperationResponse resp = new OperationResponse();
         boolean succeeded = Core.rename(path, newName, overwrite, this, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(this, resp, "Error renaming file " + path);
+            throw getExceptionCreator().getExceptionFromResp(this, resp, "Error renaming file " + path);
         }
         return succeeded;
     }
@@ -437,7 +438,7 @@ public class ADLStoreClient {
         OperationResponse resp = new OperationResponse();
         boolean succeeded = Core.delete(path, false, this, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(this, resp, "Error deleting directory " + path);
+            throw getExceptionCreator().getExceptionFromResp(this, resp, "Error deleting directory " + path);
         }
         return succeeded;
     }
@@ -455,7 +456,7 @@ public class ADLStoreClient {
         OperationResponse resp = new OperationResponse();
         DirectoryEntry dirEnt  = Core.getFileStatus(path, this, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(this, resp, "Error getting info for file " + path);
+            throw getExceptionCreator().getExceptionFromResp(this, resp, "Error getting info for file " + path);
         }
         return dirEnt;
     }
@@ -475,7 +476,7 @@ public class ADLStoreClient {
         OperationResponse resp = new OperationResponse();
         Core.setOwner(path, owner, group, this, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(this, resp, "Error setting owner for file " + path);
+            throw getExceptionCreator().getExceptionFromResp(this, resp, "Error setting owner for file " + path);
         }
     }
 
@@ -496,7 +497,7 @@ public class ADLStoreClient {
         OperationResponse resp = new OperationResponse();
         Core.setTimes(path, atimeLong, mtimeLong, this, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(this, resp, "Error setting times for file " + path);
+            throw getExceptionCreator().getExceptionFromResp(this, resp, "Error setting times for file " + path);
         }
     }
 
@@ -515,7 +516,7 @@ public class ADLStoreClient {
         OperationResponse resp = new OperationResponse();
         Core.setPermission(path, octalPermissions, this, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(this, resp, "Error setting times for " + path);
+            throw getExceptionCreator().getExceptionFromResp(this, resp, "Error setting times for " + path);
         }
     }
 
@@ -538,7 +539,7 @@ public class ADLStoreClient {
         Core.checkAccess(path, rwx, this, opts, resp);
         if (!resp.successful) {
             if (resp.httpResponseCode == 401 || resp.httpResponseCode == 403) return false;
-            throw Core.getExceptionFromResp(this, resp, "Error checking access for " + path);
+            throw getExceptionCreator().getExceptionFromResp(this, resp, "Error checking access for " + path);
         }
         return true;
     }
@@ -591,7 +592,7 @@ public class ADLStoreClient {
         OperationResponse resp = new OperationResponse();
         Core.modifyAclEntries(path, aclSpec, this, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(this, resp, "Error modifying ACLs for " + path);
+            throw getExceptionCreator().getExceptionFromResp(this, resp, "Error modifying ACLs for " + path);
         }
     }
 
@@ -610,7 +611,7 @@ public class ADLStoreClient {
         OperationResponse resp = new OperationResponse();
         Core.setAcl(path, aclSpec, this, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(this, resp, "Error setting ACLs for " + path);
+            throw getExceptionCreator().getExceptionFromResp(this, resp, "Error setting ACLs for " + path);
         }
     }
 
@@ -627,7 +628,7 @@ public class ADLStoreClient {
         OperationResponse resp = new OperationResponse();
         Core.removeAclEntries(path, aclSpec, this, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(this, resp, "Error removing ACLs for " + path);
+            throw getExceptionCreator().getExceptionFromResp(this, resp, "Error removing ACLs for " + path);
         }
     }
 
@@ -643,7 +644,7 @@ public class ADLStoreClient {
         OperationResponse resp = new OperationResponse();
         Core.removeAcl(path, this, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(this, resp, "Error removing all ACLs for file " + path);
+            throw getExceptionCreator().getExceptionFromResp(this, resp, "Error removing all ACLs for file " + path);
         }
     }
 
@@ -661,7 +662,7 @@ public class ADLStoreClient {
         OperationResponse resp = new OperationResponse();
         status = Core.getAclStatus(path, this, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(this, resp, "Error getting  ACL Status for " + path);
+            throw getExceptionCreator().getExceptionFromResp(this, resp, "Error getting  ACL Status for " + path);
         }
         return status;
     }
@@ -799,4 +800,14 @@ public class ADLStoreClient {
     public synchronized boolean remoteExceptionsEnabled() {
         return enableRemoteExceptions;
     }
+
+    private ExceptionCreator exceptionCreator = new ExceptionCreator();
+    public synchronized void setExceptionCreator(ExceptionCreator ec) {
+        if (ec != null) exceptionCreator = ec;
+    }
+
+    public synchronized ExceptionCreator getExceptionCreator() {
+        return exceptionCreator;
+    }
+
 }

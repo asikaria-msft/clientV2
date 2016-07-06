@@ -35,9 +35,7 @@ import java.util.regex.Pattern;
  * {@link OperationResponse} is used for passing the call results and stats back from the call.
  * </P><P>
  * Failures originating in Core methods are communicated back through the {@link OperationResponse} parameter,
- * not through exceptions. There is a convenience method
- * ({@link #getExceptionFromResp(ADLStoreClient, OperationResponse, String) getExceptionFromResp})
- * to generate an exception from the response, if the response indicates a failure.
+ * not through exceptions.
  * </P><P>
  * <B>Thread Safety: </B> all static methods in this class are thread-safe
  *
@@ -906,14 +904,14 @@ public class Core {
         }
     }
 
-    /**
+    /*
      * creates an {@link ADLException} from {@link OperationResponse}.
      *
      * @param resp the {@link OperationResponse} to convert to exception
      * @param client the {@link ADLStoreClient} that generated the response
      * @param defaultMessage message to use if the inner exception does not have a text message.
      * @return the {@link ADLException}, or {@code null} if the {@code resp.successful} is {@code true}
-     */
+
     public static IOException getExceptionFromResp(ADLStoreClient client, OperationResponse resp, String defaultMessage) {
         if (client.remoteExceptionsEnabled() &&
             resp.remoteExceptionJavaClassName !=null &&
@@ -939,12 +937,12 @@ public class Core {
     private static IOException getRemoteException(String className, String message) {
         try {
             Class clazz = Class.forName(className);
-            if (!clazz.isInstance(IOException.class)) { return new IOException(message); }
+            if (!IOException.class.isAssignableFrom(clazz)) { return new IOException(message); }
             Constructor c = clazz.getConstructor(String.class);
             return (IOException) c.newInstance(message);
         } catch (Exception ex) {
             return new IOException(message);
         }
     }
-
+    */
 }
