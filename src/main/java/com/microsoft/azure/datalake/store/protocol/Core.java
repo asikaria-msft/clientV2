@@ -34,11 +34,9 @@ import java.util.regex.Pattern;
  * member values as needed (e.g., the RetryPolicy). Then create a new {@link OperationResponse} object. The
  * {@link OperationResponse} is used for passing the call results and stats back from the call.
  * </P><P>
- * Failures originating in Core methods are communicated back through the {@link OperationResponse} parameter,
- * not through exceptions. There is a convenience method
- * ({@link #getExceptionFromResp(ADLStoreClient, OperationResponse, String) getExceptionFromResp})
- * to generate an exception from the response, if the response indicates a failure.
- * </P><P>
+ * Failures originating in Core methods are communicated back through the {@link OperationResponse} parameter.
+ * </P>
+ * <P>
  * <B>Thread Safety: </B> all static methods in this class are thread-safe
  *
  * </P>
@@ -905,46 +903,4 @@ public class Core {
             return null;
         }
     }
-
-    /**
-     * creates an {@link ADLException} from {@link OperationResponse}.
-     *
-     * @param resp the {@link OperationResponse} to convert to exception
-     * @param client the {@link ADLStoreClient} that generated the response
-     * @param defaultMessage message to use if the inner exception does not have a text message.
-     * @return the {@link ADLException}, or {@code null} if the {@code resp.successful} is {@code true}
-     */
-    public static IOException getExceptionFromResp(ADLStoreClient client, OperationResponse resp, String defaultMessage) {
-        if (client.remoteExceptionsEnabled() &&
-            resp.remoteExceptionJavaClassName !=null &&
-            !resp.remoteExceptionJavaClassName.equals("")) {
-                return getRemoteException(resp.remoteExceptionJavaClassName, resp.remoteExceptionMessage);
-        } else {
-            String msg = (resp.message == null) ? defaultMessage : resp.message;
-            ADLException ex = new ADLException(msg);
-            ex.httpResponseCode = resp.httpResponseCode;
-            ex.httpResponseMessage = resp.httpResponseMessage;
-            ex.requestId = resp.requestId;
-            ex.numRetries = resp.numRetries;
-            ex.lastCallLatency = resp.lastCallLatency;
-            ex.responseContentLength = resp.responseContentLength;
-            ex.remoteExceptionName = resp.remoteExceptionName;
-            ex.remoteExceptionMessage = resp.remoteExceptionMessage;
-            ex.remoteExceptionJavaClassName = resp.remoteExceptionJavaClassName;
-            ex.initCause(resp.ex);
-            return ex;
-        }
-    }
-
-    private static IOException getRemoteException(String className, String message) {
-        try {
-            Class clazz = Class.forName(className);
-            if (!IOException.class.isAssignableFrom(clazz)) { return new IOException(message); }
-            Constructor c = clazz.getConstructor(String.class);
-            return (IOException) c.newInstance(message);
-        } catch (Exception ex) {
-            return new IOException(message);
-        }
-    }
-
 }

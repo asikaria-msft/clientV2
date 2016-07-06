@@ -128,7 +128,7 @@ public class Utils {
         OperationResponse resp = new OperationResponse();
         Core.concurrentAppend(filename, bytesToAppend, 0, bytesToAppend.length, true, client, opts, resp);
         if (!resp.successful) {
-            throw Core.getExceptionFromResp(client, resp, "Error appending to file " + filename);
+            throw client.getExceptionFromResp(resp, "Error appending to file " + filename);
         }
     }
 }
