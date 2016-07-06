@@ -66,7 +66,7 @@ public class ADLFileInputStream extends InputStream {
         byte[] b = new byte[1];
         int i = read(b, 0, 1);
         if (i<0) return i;
-            else return b[0];
+            else return (b[0] & 0xFF);
     }
 
     @Override
@@ -252,7 +252,7 @@ public class ADLFileInputStream extends InputStream {
      * gets the position of the cursor within the file
      * @return position of the cursor
      */
-    long getPos() {
+    public long getPos() {
         return fCursor - limit + bCursor;
     }
 
