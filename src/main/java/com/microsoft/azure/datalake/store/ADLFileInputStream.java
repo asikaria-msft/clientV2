@@ -91,7 +91,7 @@ public class ADLFileInputStream extends InputStream {
             throw new IndexOutOfBoundsException();
         }
         if (log.isTraceEnabled()) {
-            log.trace("read at offset {} size {} using client {} from file {}", getPos(), len, client.getClientId(), filename);
+            log.trace("ADLFileInputStream.read(b,off,{}) at offset {} using client {} from file {}", len, getPos(), client.getClientId(), filename);
         }
 
         if (len == 0) {
@@ -125,7 +125,7 @@ public class ADLFileInputStream extends InputStream {
         if (fCursor >= directoryEntry.length) return -1; // At or past end of file
 
         if (log.isTraceEnabled()) {
-            log.trace("read from server at offset {} using client {} from file {}", getPos(), client.getClientId(), filename);
+            log.trace("ADLFileInputStream.readFromService() - at offset {} using client {} from file {}", getPos(), client.getClientId(), filename);
         }
 
         //reset buffer to initial state - i.e., throw away existing data
@@ -169,10 +169,10 @@ public class ADLFileInputStream extends InputStream {
      */
     public void seek(long n) throws IOException, EOFException {
         if (log.isTraceEnabled()) {
-            log.trace("begin seek to offset {} using client {} from file {}", n, client.getClientId(), filename);
+            log.trace("ADLFileInputStream.seek({}) using client {} for file {}", n, client.getClientId(), filename);
         }
         if (streamClosed) throw new IOException("attempting to seek into a closed stream;");
-        if (n<0) throw new IllegalArgumentException("Cannot seek to before the beginning of file");
+        if (n<0) throw new EOFException("Cannot seek to before the beginning of file");
         if (n>directoryEntry.length) throw new EOFException("Cannot seek past end of file");
 
         if (n>=fCursor-limit && n<=fCursor) { // within buffer
@@ -190,6 +190,9 @@ public class ADLFileInputStream extends InputStream {
 
     @Override
     public long skip(long n) throws IOException {
+        if (log.isTraceEnabled()) {
+            log.trace("ADLFileInputStream.skip({}) using client {} for file {}", n, client.getClientId(), filename);
+        }
         if (streamClosed) throw new IOException("attempting to skip() on a closed stream");
         long currentPos = getPos();
         long newPos = currentPos + n;
@@ -211,6 +214,9 @@ public class ADLFileInputStream extends InputStream {
      * @throws ADLException if there is an error
      */
     public void setBufferSize(int newSize) throws IOException {
+        if (log.isTraceEnabled()) {
+            log.trace("ADLFileInputStream.setBufferSize({}) using client {} for file {}", newSize, client.getClientId(), filename);
+        }
         if (newSize <=0) throw new IllegalArgumentException("Buffer size cannot be zero or less: " + newSize);
         if (newSize == blocksize) return;  // nothing to do
 
@@ -240,6 +246,7 @@ public class ADLFileInputStream extends InputStream {
     /**
      * gets the position of the cursor within the file
      * @return position of the cursor
+     * @throws IOException throws {@link IOException} if there is an error
      */
     public long getPos() throws IOException {
         if (streamClosed) throw new IOException("attempting to call getPos() on a closed stream");
@@ -248,10 +255,11 @@ public class ADLFileInputStream extends InputStream {
 
     /**
      * invalidates the buffer. The next read will fetch data from server.
+     * @throws IOException throws {@link IOException} if there is an error
      */
     public void unbuffer() throws IOException {
         if (log.isTraceEnabled()) {
-            log.trace("ADLInput Stream cleared buffer for client {} for file {}", client.getClientId(), filename);
+            log.trace("ADLFileInputStream.unbuffer() for client {} for file {}", client.getClientId(), filename);
         }
         fCursor = getPos();
         limit = 0;
@@ -260,6 +268,9 @@ public class ADLFileInputStream extends InputStream {
 
     @Override
     public void close() throws IOException {
+        if (log.isTraceEnabled()) {
+            log.trace("ADLFileInputStream.close() for client {} for file {}", client.getClientId(), filename);
+        }
         streamClosed = true;
         if (log.isTraceEnabled()) {
             log.trace("ADLInput Stream closed for client {} for file {}", client.getClientId(), filename);
