@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.UUID;
 
 /**
  * {@code ADLFileOutputStream} is used to add data to an Azure Data Lake File.
@@ -30,6 +31,7 @@ public class ADLFileOutputStream extends OutputStream {
     private final ADLStoreClient client;
     private final boolean isCreate;
     private final boolean overwrite;
+    private final String leaseId = UUID.randomUUID().toString();
 
     private int blocksize = 4 * 1024 *1024;
     private byte[] buffer = new byte[blocksize]; //4MB byte-buffer
@@ -124,19 +126,20 @@ public class ADLFileOutputStream extends OutputStream {
             if (log.isTraceEnabled()) {
                 log.trace("create file with data size {} for client {} for file {}", cursor, client.getClientId(), filename);
             }
-            Core.create(filename, overwrite, buffer, 0, cursor, client, opts, resp);
+            Core.create(filename, overwrite, buffer, 0, cursor, leaseId, client, opts, resp);
             if (!resp.successful) {
                 throw client.getExceptionFromResp(resp, "Error creating file " + filename);
             }
             created = true;
         } else {
+            String appendLeaseId = (isCreate) ? leaseId : null;
             RequestOptions opts = new RequestOptions();
             opts.retryPolicy = new NoRetryPolicy();
             OperationResponse resp = new OperationResponse();
             if (log.isTraceEnabled()) {
                 log.trace("append to file with data size {} for client {} for file {}", cursor, client.getClientId(), filename);
             }
-            Core.append(filename, buffer, 0, cursor, client, opts, resp);
+            Core.append(filename, buffer, 0, cursor, appendLeaseId, client, opts, resp);
             if (!resp.successful) {
                 throw client.getExceptionFromResp(resp, "Error appending to file " + filename);
             }

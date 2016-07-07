@@ -64,19 +64,22 @@ public class Core {
                               byte[] contents,
                               int offsetWithinContentsArray,
                               int length,
+                              String leaseId,
                               ADLStoreClient client,
                               RequestOptions opts,
                               OperationResponse resp) {
         QueryParams qp = new QueryParams();
         qp.add("overwrite", (overwrite? "true" : "false"));
         qp.add("write", "true");  // This is to suppress the 307-redirect from server (standard WebHdfs behavior)
-
+        if (leaseId != null && !leaseId.equals("")) {
+            qp.add("leaseid", leaseId);
+        }
         HttpTransport.makeCall(client, Operation.CREATE, path, qp, contents, offsetWithinContentsArray, length, opts, resp);
     }
 
     /**
      * append bytes to an existing file created with
-     * {@link #create(String, boolean, byte[], int, int, ADLStoreClient, RequestOptions, OperationResponse) create}.
+     * {@link #create(String, boolean, byte[], int, int, String, ADLStoreClient, RequestOptions, OperationResponse) create}.
      *
      *
      * @param path the full path of the file to append to. The file must already exist.
@@ -92,11 +95,15 @@ public class Core {
                               byte[] contents,
                               int offsetWithinContentsArray,
                               int length,
+                              String leaseId,
                               ADLStoreClient client,
                               RequestOptions opts,
                               OperationResponse resp) {
         QueryParams qp = new QueryParams();
         qp.add("append", "true");
+        if (leaseId != null && !leaseId.equals("")) {
+            qp.add("leaseid", leaseId);
+        }
 
         HttpTransport.makeCall(client, Operation.APPEND, path, qp, contents, offsetWithinContentsArray, length, opts, resp);
     }
