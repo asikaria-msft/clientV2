@@ -190,7 +190,7 @@ public class ADLFileInputStream extends InputStream {
 
     @Override
     public long skip(long n) throws IOException {
-        if (streamClosed) throw new IOException("attempting to skip() on a closed stream;");
+        if (streamClosed) throw new IOException("attempting to skip() on a closed stream");
         long currentPos = getPos();
         long newPos = currentPos + n;
         if (newPos < 0) {
@@ -233,6 +233,7 @@ public class ADLFileInputStream extends InputStream {
      */
     @Override
     public int available() throws IOException {
+        if (streamClosed) throw new IOException("attempting to call available() on a closed stream");
         return limit - bCursor;
     }
 
@@ -240,14 +241,15 @@ public class ADLFileInputStream extends InputStream {
      * gets the position of the cursor within the file
      * @return position of the cursor
      */
-    public long getPos() {
+    public long getPos() throws IOException {
+        if (streamClosed) throw new IOException("attempting to call getPos() on a closed stream");
         return fCursor - limit + bCursor;
     }
 
     /**
      * invalidates the buffer. The next read will fetch data from server.
      */
-    public void unbuffer() {
+    public void unbuffer() throws IOException {
         if (log.isTraceEnabled()) {
             log.trace("ADLInput Stream cleared buffer for client {} for file {}", client.getClientId(), filename);
         }
