@@ -6,7 +6,6 @@
 
 package com.microsoft.azure.datalake.store;
 
-
 /**
  * structure that contains the return values from getContentSummary call.
  */
@@ -17,24 +16,20 @@ public class ContentSummary {
      */
     public final long length;
 
-
     /**
      * number of subdirectories under a directory
      */
     public final long directoryCount;
 
-
     /**
      * number of files under a directory
      */
     public final long fileCount;
-    
 
     /**
      * total space consumed by a directory
      */
     public final long spaceConsumed;
-
 
     public ContentSummary(
             long length,

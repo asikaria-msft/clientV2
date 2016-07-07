@@ -467,6 +467,25 @@ public class ADLStoreClient {
         return dirEnt;
     }
 
+
+    /**
+     * Gets the content summary of a file or directory.
+     * @param path full pathname of file or directory to query
+     * @return {@link ContentSummary} containing summary of information about the file or directory
+     * @throws IOException {@link ADLException} is thrown if there is an error
+     */
+    public ContentSummary getContentSummary(String path) throws IOException {
+        RequestOptions opts = new RequestOptions();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
+        OperationResponse resp = new OperationResponse();
+        ContentSummary contentSummary  = Core.getContentSummary(path, this, opts, resp);
+        if (!resp.successful) {
+            throw getExceptionFromResp(resp, "Error getting contentSummary for file " + path);
+        }
+        return contentSummary;
+    }
+
+
     /**
      * sets the owning user and group of the file. If the user or group are {@code null}, then they are not changed.
      * It is illegal to pass both user and owner as {@code null}.

@@ -723,4 +723,55 @@ public class TestFileSdk {
         String parentDir = dirname + "/a";
         client.delete(parentDir);
     }
+
+    @Test
+    public void contentSummaryForFile() throws IOException {
+        Assume.assumeTrue(testsEnabled);
+        String filename = directory + "/" + "contentSummaryForFile.txt";
+
+        // write some text to file
+        byte [] contents = HelperUtils.getSampleText1();
+        OutputStream out = client.createOutputStream(filename, IfExists.OVERWRITE);
+        out.write(contents);
+        out.close();
+
+        ContentSummary contentSummary = client.getContentSummary(filename);
+        assertTrue("file length in content summary should match", contentSummary.length == contents.length);
+        assertTrue("directoryCount for file should be zero", contentSummary.directoryCount == 0);
+        assertTrue("fileCount for file should be 1", contentSummary.fileCount == 1);
+        assertTrue("spaceConsumed in content summary should match", contentSummary.spaceConsumed == contents.length);
+    }
+
+    @Test
+    public void contentSummaryForDirectory() throws IOException {
+        Assume.assumeTrue(testsEnabled);
+        String dirname = directory + "/" + "contentSummaryForDirectory";
+        String fn1 = dirname + "/" + "a.txt";
+        String fn2 = dirname + "/" + "b.txt";
+        String dn2 = dirname + "/" + "foo";
+
+        // create a subdirectory
+        client.createDirectory(dn2);
+
+        // write some text to two files
+        byte [] contents1 = HelperUtils.getSampleText1();
+        OutputStream out = client.createOutputStream(fn1, IfExists.OVERWRITE);
+        out.write(contents1);
+        out.close();
+
+        byte [] contents2 = HelperUtils.getSampleText2();
+        out = client.createOutputStream(fn2, IfExists.OVERWRITE);
+        out.write(contents2);
+        out.close();
+
+        long totalLength = contents1.length + contents2.length;
+
+        ContentSummary contentSummary = client.getContentSummary(dirname);
+        assertTrue("length in content summary for dir should match sum of all files in dir", contentSummary.length == totalLength);
+        assertTrue("directoryCount for this directory should be two", contentSummary.directoryCount == 2);
+        assertTrue("fileCount for this directory should be two", contentSummary.fileCount == 2);
+        assertTrue("spaceConsumed in content summary should match", contentSummary.spaceConsumed == totalLength);
+    }
+
+
 }
