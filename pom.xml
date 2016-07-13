@@ -36,7 +36,6 @@
             </manifest>
             <manifestEntries>
               <Built-By>Microsoft Corporation</Built-By>
-              <Sealed>true</Sealed>
             </manifestEntries>
           </archive>
         </configuration>
