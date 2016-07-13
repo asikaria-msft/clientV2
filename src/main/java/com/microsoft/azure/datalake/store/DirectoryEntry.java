@@ -72,8 +72,8 @@ public class DirectoryEntry {
         this.length = length;
         this.group = group;
         this.user = user;
-        this.lastAccessTime = lastAccessTime;
-        this.lastModifiedTime = lastModifiedTime;
+        this.lastAccessTime = new Date(lastAccessTime.getTime()); // creating a new instance, since the passed-in Date is mutable
+        this.lastModifiedTime = new Date(lastModifiedTime.getTime()); // basically this is copying the date from passed in date
         this.type = type;
         this.permission = permission;
     }

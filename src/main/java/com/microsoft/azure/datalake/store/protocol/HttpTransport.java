@@ -86,15 +86,15 @@ class HttpTransport {
                 resp.successful = true;
                 LatencyTracker.addLatency(opts.requestid, retryCount, resp.lastCallLatency, op.name,
                         length + resp.responseContentLength, client.getClientId());
-                if (log.isInfoEnabled()) {
+                if (log.isDebugEnabled()) {
                     String logline = "HTTPRequest,Succeeded," +
                                      opts.requestid + "," +
-                                     Integer.toString(retryCount) + "," +
                                      Long.toString(resp.lastCallLatency) + ",," +
                                      op.name + "," +
                                      Long.toString(resp.responseContentLength) + "," +
-                                     resp.requestId;
-                    log.info(logline);
+                                     resp.requestId + "," +
+                                     path;
+                    log.debug(logline);
                 }
                 return;
             } else {
@@ -107,16 +107,16 @@ class HttpTransport {
                 }
                 LatencyTracker.addError(opts.requestid, retryCount, resp.lastCallLatency, error, op.name,
                         length, client.getClientId());
-                if (log.isInfoEnabled()) {
+                if (log.isDebugEnabled()) {
                     String logline = "HTTPRequest,Failed," +
                             opts.requestid + "," +
-                            Integer.toString(retryCount) + "," +
                             Long.toString(resp.lastCallLatency) + "," +
                             error + "," +
                             op.name + "," +
                             Long.toString(resp.responseContentLength) + "," +
-                            resp.requestId;
-                    log.info(logline);
+                            resp.requestId + "," +
+                            path;
+                    log.debug(logline);
                 }
                 retryCount++;
             }

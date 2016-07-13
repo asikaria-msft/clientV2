@@ -130,7 +130,6 @@ public class AzureADAuthenticator {
             Calendar cal = Calendar.getInstance();
             cal.add(Calendar.SECOND, expiryPeriod);
             token.expiry = cal;
-            token.refreshToken = null;
         } else {
             throw new IOException("Failed to acquire token from AzureAD. Http response: " + httpResponseCode + " " + conn.getResponseMessage());
         }

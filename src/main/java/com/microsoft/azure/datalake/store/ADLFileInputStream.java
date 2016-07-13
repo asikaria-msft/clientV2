@@ -75,7 +75,7 @@ public class ADLFileInputStream extends InputStream {
     @Override
     public int read(byte[] b) throws IOException {
         if (b == null) {
-            throw new NullPointerException();
+            throw new NullPointerException("null byte array passed in to read() method");
         }
         return read(b, 0, b.length);
     }
@@ -84,7 +84,7 @@ public class ADLFileInputStream extends InputStream {
     public int read(byte[] b, int off, int len) throws IOException {
         if (streamClosed) throw new IOException("attempting to read from a closed stream");
         if (b == null) {
-            throw new NullPointerException();
+            throw new NullPointerException("null byte array passed in to read() method");
         }
 
         if (off < 0 || len < 0 || len > b.length - off) {

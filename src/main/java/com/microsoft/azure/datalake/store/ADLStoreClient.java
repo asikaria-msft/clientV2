@@ -40,7 +40,6 @@ public class ADLStoreClient {
     private final String accountFQDN;
     private String accessToken;
     private final AccessTokenProvider tokenProvider;
-    private String userAgentSuffix;
     private String userAgentString;
     private static final Logger log = LoggerFactory.getLogger("com.microsoft.azure.datalake.store"); // package-default logging policy
     private static final AtomicLong clientIdCounter = new AtomicLong(0);
@@ -49,9 +48,9 @@ public class ADLStoreClient {
     private boolean enableRemoteExceptions = false;
 
     private static String userAgent =
-            String.format("%s.%s/%s-%s/%s/%s-%s",
+            String.format("%s-%s/%s-%s/%s/%s-%s",
                     "ADLSJavaSDK",
-                    ADLStoreClient.class.getPackage().getImplementationVersion(), // SDK Version
+                    "2.0.1", // SDK Version
                     System.getProperty("os.name").replaceAll(" ", ""),
                     System.getProperty("os.version"),
                     System.getProperty("os.arch"),
@@ -93,7 +92,7 @@ public class ADLStoreClient {
             throw new IllegalArgumentException("token is required");
         }
         long clientId =  clientIdCounter.incrementAndGet();
-        log.debug("AzureDatalakeStorageClient {} created for {}", clientId, accountFQDN);
+        log.trace("ADLStoreClient {} created for {}", clientId, accountFQDN);
         return new ADLStoreClient(accountFQDN, token.accessToken, clientId, null);
     }
 
@@ -114,7 +113,7 @@ public class ADLStoreClient {
             throw new IllegalArgumentException("token is required");
         }
         long clientId =  clientIdCounter.incrementAndGet();
-        log.debug("AzureDatalakeStorageClient {} created for {}", clientId, accountFQDN);
+        log.trace("ADLStoreClient {} created for {}", clientId, accountFQDN);
         return new ADLStoreClient(accountFQDN, accessToken, clientId, null);
     }
 
@@ -135,7 +134,7 @@ public class ADLStoreClient {
             throw new IllegalArgumentException("token provider is required");
         }
         long clientId =  clientIdCounter.incrementAndGet();
-        log.debug("AzureDatalakeStorageClient {} created for {}", clientId, accountFQDN);
+        log.trace("ADLStoreClient {} created for {}", clientId, accountFQDN);
         return new ADLStoreClient(accountFQDN, null, clientId, tokenProvider);
     }
 
@@ -702,7 +701,7 @@ public class ADLStoreClient {
      * @param token The OAuth2 Token
      */
     public synchronized void updateToken(AzureADToken token) {
-        log.debug("AAD Token Updated for client client {} for account {}", clientId, accountFQDN);
+        log.trace("AAD Token Updated for client client {} for account {}", clientId, accountFQDN);
         this.accessToken = "Bearer " + token.accessToken;
     }
 
@@ -713,7 +712,7 @@ public class ADLStoreClient {
      * @param accessToken The AAD Token string
      */
     public synchronized void updateToken(String accessToken) {
-        log.debug("AAD Token Updated for client client {} for account {}", clientId, accountFQDN);
+        log.trace("AAD Token Updated for client client {} for account {}", clientId, accountFQDN);
         this.accessToken = "Bearer " + accessToken;
     }
 
@@ -750,17 +749,6 @@ public class ADLStoreClient {
             this.userAgentString = userAgent + "/" + userAgentSuffix;
         }
     }
-
-    /*
-     * returns the user agent suffix to be added to the User-Agent header in all HTTP requests made to the server.
-     * This suffix is appended to the end of the User-Agent string constructed by the SDK.
-     * @return the suffix
-
-    public String getUserAgentSuffix() {
-        return userAgentSuffix;
-    }
-    */
-
 
     /**
      * Gets the HTTP User-Agent string that will be used for requests made from this client.

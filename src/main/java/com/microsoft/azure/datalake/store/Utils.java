@@ -74,8 +74,9 @@ public class Utils {
         if (localFilename == null || localFilename.trim().equals(""))
             throw new IllegalArgumentException("localFilename cannot be null");
 
-        FileInputStream in = new FileInputStream(localFilename);
-        upload(filename, in, mode);
+        try (FileInputStream in = new FileInputStream(localFilename)){
+            upload(filename, in, mode);
+        }
     }
 
     /**
@@ -92,16 +93,16 @@ public class Utils {
             throw new IllegalArgumentException("filename cannot be null");
         if (in == null) throw new IllegalArgumentException("InputStream cannot be null");
 
-        ADLFileOutputStream out = client.createOutputStream(filename, mode);
-        int bufSize = 4 * 1000 * 1000;
-        out.setBufferSize(bufSize);
-        byte[] buffer = new byte[bufSize];
-        int n;
+        try (ADLFileOutputStream out = client.createOutputStream(filename, mode)) {
+            int bufSize = 4 * 1000 * 1000;
+            out.setBufferSize(bufSize);
+            byte[] buffer = new byte[bufSize];
+            int n;
 
-        while ((n=in.read(buffer)) != -1) {
-            out.write(buffer, 0, n);
+            while ((n = in.read(buffer)) != -1) {
+                out.write(buffer, 0, n);
+            }
         }
-        out.close();
         in.close();
     }
 

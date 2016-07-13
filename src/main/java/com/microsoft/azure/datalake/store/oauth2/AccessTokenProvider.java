@@ -55,6 +55,8 @@ public abstract class AccessTokenProvider {
      */
     private boolean isTokenAboutToExpire() {
         if (token==null) return true;   // no token should have same response as expired token
+        if (token.expiry == null) return true; // if dont know expiry then assume expired (should not happen with a
+                                               // correctly implemented refreshToken)
         boolean expiring = false;
         Calendar approximatelyNow = Calendar.getInstance(); // get current time
         approximatelyNow.add(Calendar.MINUTE, 5);  // allow 5 minutes for clock skew
