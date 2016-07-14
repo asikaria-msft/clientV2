@@ -219,7 +219,7 @@ class HttpTransport {
 */
         if (path.charAt(0) != '/') urlString.append('/');
         try {
-            urlString.append((new URI(null, null, path, null)).getRawPath());   // use URI to encode path
+            urlString.append((new URI(null, null, path, null)).toASCIIString());   // use URI to encode path
         } catch (URISyntaxException ex) {
             resp.successful = false;
             resp.message = "Invalid path " + path;

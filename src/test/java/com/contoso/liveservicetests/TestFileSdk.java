@@ -103,6 +103,37 @@ public class TestFileSdk {
         assertTrue("file contents should match", Arrays.equals(contents, b2));
     }
 
+    @Test
+    public void smallFileWithUnicodeCharacters() throws IOException {
+        Assume.assumeTrue(testsEnabled);
+
+        // Contains language names in that language
+        // Traditional-Chinese.Simplified-Chinese.Hebrew.Hindi.Spanish
+        String unicodeFilename = "Sdk.smallFileWithUnicodeCharacters.官話.官话.עברית.हिंदी.español.txt";
+
+        String filename = directory + "/" + unicodeFilename;
+
+        // write some text to file
+        byte [] contents = HelperUtils.getSampleText1();
+        OutputStream out = client.createOutputStream(filename, IfExists.FAIL);
+        out.write(contents);
+        out.close();
+
+        // read text from file
+        InputStream in = client.getReadStream(filename);
+        byte[] b1 = new byte[contents.length*2]; // double the size, to account for bloat due to possible bug in upload
+        int bytesRead;
+        int count = 0;
+        while ((bytesRead = in.read(b1, count, b1.length-count)) >=0 && count<=b1.length ) {
+            count += bytesRead;
+        }
+
+        // verify what was read is identical to what was written
+        assertTrue("file length should match what was written", contents.length == count);
+        byte[] b2 = Arrays.copyOfRange(b1, 0, count);
+        assertTrue("file contents should match", Arrays.equals(contents, b2));
+    }
+
     @Test(expected = IOException.class)
     public void existingFileNoOverwrite() throws IOException {
         Assume.assumeTrue(testsEnabled);

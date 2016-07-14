@@ -64,6 +64,8 @@ public class ExponentialOnThrottlePolicy implements RetryPolicy {
     private void wait(int milliseconds) {
         try {
             Thread.sleep(milliseconds);
-        } catch (InterruptedException ex) { }
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();   // http://www.ibm.com/developerworks/library/j-jtp05236/
+        }
     }
 }
