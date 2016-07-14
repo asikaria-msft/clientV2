@@ -108,10 +108,11 @@ public class TestFileSdk {
         Assume.assumeTrue(testsEnabled);
 
         // Contains language names in that language
-        // Traditional-Chinese.Simplified-Chinese.Hebrew.Hindi.Spanish
-        String unicodeFilename = "Sdk.smallFileWithUnicodeCharacters.官話.官话.עברית.हिंदी.español.txt";
+        // non-AlphaNum-chars.Traditional-Chinese.Simplified-Chinese.Hebrew.Hindi.Spanish
+        String unicodeFilename = "ch+ ch.官話.官话.עברית.हिंदी.español.txt";
 
-        String filename = directory + "/" + unicodeFilename;
+        String testDirectory = directory + "/Sdk.smallFileWithUnicodeCharacters/";
+        String filename = testDirectory + unicodeFilename;
 
         // write some text to file
         byte [] contents = HelperUtils.getSampleText1();
@@ -132,6 +133,19 @@ public class TestFileSdk {
         assertTrue("file length should match what was written", contents.length == count);
         byte[] b2 = Arrays.copyOfRange(b1, 0, count);
         assertTrue("file contents should match", Arrays.equals(contents, b2));
+
+        // verify getDirectoryEntry succeeds
+        client.getDirectoryEntry(filename);
+
+        // verify it is returned correctly in enumerate of directory
+        List<DirectoryEntry> list = client.enumerateDirectory(testDirectory, 10);
+        for (DirectoryEntry entry : list) {
+            String serverFilename = entry.name;
+            String fullServerFilename = entry.fullName;
+            assertTrue("file name should match", serverFilename.equals(unicodeFilename));
+            assertTrue("file fullname should match", fullServerFilename.equals(filename));
+            // should only be one file in there
+        }
     }
 
     @Test(expected = IOException.class)
