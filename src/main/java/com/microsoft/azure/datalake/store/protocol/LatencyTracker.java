@@ -45,7 +45,7 @@ public class LatencyTracker {
 
     private static final ArrayBlockingQueue<String> Q = new ArrayBlockingQueue<String>(256);
     private static final int MAXPERLINE = 3;
-    private static boolean disabled = false;
+    private static volatile boolean disabled = false;
 
     private LatencyTracker() {} // Prevent instantiation - static methods only
 
