@@ -3,8 +3,8 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.microsoft.azure</groupId>
-  <artifactId>azure-data-lake-store-sdk</artifactId>
-  <version>2.0.1-SNAPSHOT</version>
+  <artifactId>adls-sdk-prime</artifactId>
+  <version>1.0.1</version>
   <packaging>jar</packaging>
 
   <name>Azure Data Lake Java client SDK</name>
