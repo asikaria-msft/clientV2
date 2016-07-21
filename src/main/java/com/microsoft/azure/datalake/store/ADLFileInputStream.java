@@ -23,6 +23,10 @@ import java.io.InputStream;
  * It is a buffering stream, that reads data from the server in bulk, and then
  * satisfies user reads from the buffer. Default buffer size is 4MB.
  *
+ * <P>
+ * Thread Safety: Methods in this class are <B>not</B> thread-safe.
+ * </P>
+ *
  *
  */
 public class ADLFileInputStream extends InputStream {
@@ -62,6 +66,60 @@ public class ADLFileInputStream extends InputStream {
         if (log.isTraceEnabled()) {
             log.trace("ADLFIleInputStream created for client {} for file {}", client.getClientId(), filename);
         }
+    }
+
+    /**
+     * Read upto the specified number of bytes, from a given
+     * position within a file, and return the number of bytes read. This does not
+     * change the current offset of a file.
+     *
+     * @param position position in file to read from
+     * @param b  byte[] buffer to read into
+     * @param offset offset into the byte buffer at which to read the data into
+     * @param length number of bytes to read
+     * @return the number of bytes actually read, which could be less than the bytes requested. If the {@code position}
+     *         is at or after end of file, then -1 is returned.
+     * @throws IOException thrown if there is an error in reading
+     */
+    public int read(long position, byte[] b, int offset, int length)
+            throws IOException {
+        if (streamClosed) throw new IOException("attempting to read from a closed stream");
+        if (position < 0) throw new IllegalArgumentException("attempting to read from negative offset");
+        if (position >= directoryEntry.length) return -1;  // Hadoop prefers -1 to EOFException
+        if (b == null) throw new NullPointerException("null byte array passed in to read() method");
+        if (offset >= b.length) throw new IllegalArgumentException("offset greater than length of array");
+        if (length > (b.length - offset))
+            throw new IllegalArgumentException("requested read length is more than will fit after requested offset in buffer");
+
+        if (log.isTraceEnabled()) {
+            log.trace("ADLFileInputStream positioned read() - at offset {} using client {} from file {}", position, client.getClientId(), filename);
+        }
+
+        // make server call to get more data
+        RequestOptions opts = new RequestOptions();
+        opts.retryPolicy = new ExponentialOnThrottlePolicy();
+        OperationResponse resp = new OperationResponse();
+        InputStream str = Core.open(filename, position, length, client, opts, resp);
+        if (resp.httpResponseCode == 403 || resp.httpResponseCode == 416) {
+            resp.successful = true;
+            return -1; //End-of-file. This should never happen for a positioned read - we have already validated above
+        }
+        if (!resp.successful) throw client.getExceptionFromResp(resp, "Error reading from file " + filename);
+        if (resp.responseContentLength == 0 && !resp.responseChunked) return 0;  //Got nothing
+        int bytesRead;
+        int totalBytesRead = 0;
+        try {
+            do {
+                bytesRead = str.read(b, offset + totalBytesRead, length - totalBytesRead);
+                if (bytesRead > 0) { // if not EOF of the Core.open's stream
+                    totalBytesRead += bytesRead;
+                }
+            } while (bytesRead >= 0 && totalBytesRead < length);
+            str.close();
+        } catch (IOException ex) {
+            throw new ADLException("Error reading data from response stream in positioned read() for file " + filename, ex);
+        }
+        return totalBytesRead;
     }
 
     @Override
@@ -156,7 +214,7 @@ public class ADLFileInputStream extends InputStream {
             } while (bytesRead >= 0 && limit < blocksize);
             str.close();
         } catch (IOException ex) {
-            throw new ADLException("Error reading data", ex);
+            throw new ADLException("Error reading data from response stream for file " + filename, ex);
         }
         return totalBytesRead;
     }
