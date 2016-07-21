@@ -221,6 +221,19 @@ public class ADLStoreClient {
     /**
      * Enumerates the contents of a directory, returning a {@link List} of {@link DirectoryEntry} objects,
      * one per file or directory in the specified directory.
+     *
+     * @param path full pathname of directory to enumerate
+     * @return {@link List}&lt;{@link DirectoryEntry}&gt; containing the contents of the directory
+     * @throws IOException {@link ADLException} is thrown if there is an error
+     */
+    public List<DirectoryEntry> enumerateDirectory(String path) throws IOException  {
+        return enumerateDirectory(path, 0, null, null);
+    }
+
+
+    /**
+     * Enumerates the contents of a directory, returning a {@link List} of {@link DirectoryEntry} objects,
+     * one per file or directory in the specified directory.
      * <P>
      * To avoid overwhelming the client or the server, the call may return a partial list, in which case
      * the caller should make the call again with the last entry from the returned list specified as the
