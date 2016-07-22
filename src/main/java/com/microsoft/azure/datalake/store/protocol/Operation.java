@@ -20,7 +20,7 @@ enum Operation {
     GETFILECHECKSUM    ("GETFILECHECKSUM",    "GET",    C.requiresBodyFalse, C.returnsBodyTrue,  C.isExtFalse),
     GETACLSTATUS       ("GETACLSTATUS",       "GET",    C.requiresBodyFalse, C.returnsBodyTrue,  C.isExtFalse),
     MSGETACLSTATUS     ("MSGETACLSTATUS",     "GET",    C.requiresBodyFalse, C.returnsBodyTrue,  C.isExtFalse),
-    CHECKACCESS        ("CHECKACCESS",        "GET",    C.requiresBodyFalse, C.returnsBodyTrue,  C.isExtFalse),
+    CHECKACCESS        ("CHECKACCESS",        "GET",    C.requiresBodyFalse, C.returnsBodyFalse,  C.isExtFalse),
     CREATE             ("CREATE",             "PUT",    C.requiresBodyTrue,  C.returnsBodyFalse, C.isExtFalse),
     MKDIRS             ("MKDIRS",             "PUT",    C.requiresBodyFalse, C.returnsBodyTrue,  C.isExtFalse),
     RENAME             ("RENAME",             "PUT",    C.requiresBodyFalse, C.returnsBodyTrue,  C.isExtFalse),
@@ -37,7 +37,7 @@ enum Operation {
     CONCAT             ("CONCAT",             "POST",   C.requiresBodyFalse, C.returnsBodyFalse, C.isExtFalse),
     MSCONCAT           ("MSCONCAT",           "POST",   C.requiresBodyTrue,  C.returnsBodyFalse, C.isExtFalse),
     DELETE             ("DELETE",             "DELETE", C.requiresBodyFalse, C.returnsBodyTrue,  C.isExtFalse),
-    CONCURRENTAPPEND   ("CONCURRENTAPPEND",   "POST",   C.requiresBodyTrue,  C.returnsBodyTrue,  C.isExtTrue),
+    CONCURRENTAPPEND   ("CONCURRENTAPPEND",   "POST",   C.requiresBodyTrue,  C.returnsBodyFalse,  C.isExtTrue),
     SETEXPIRY          ("SETEXPIRY",          "PUT",    C.requiresBodyFalse, C.returnsBodyFalse, C.isExtTrue),
     GETFILEINFO        ("GETFILEINFO",        "GET",    C.requiresBodyFalse, C.returnsBodyFalse, C.isExtTrue);
 

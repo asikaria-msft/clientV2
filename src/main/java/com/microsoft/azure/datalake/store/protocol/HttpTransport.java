@@ -230,10 +230,20 @@ class HttpTransport {
         queryParams.setOp(op);
         queryParams.setApiVersion(API_VERSION);
         urlString.append(queryParams.serialize());
+
+        URL url;
+        try {
+            url = new URL(urlString.toString());
+        } catch (MalformedURLException ex) {
+            resp.ex = ex;
+            resp.successful = false;
+            return;
+        }
+
+        HttpURLConnection conn=null;
         try {
             // Setup Http Request (method and headers)
-            URL url = new URL(urlString.toString());
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn = (HttpURLConnection) url.openConnection();
             conn.setRequestProperty("Authorization", client.getAccessToken());
             conn.setRequestProperty("User-Agent", client.getUserAgent());
             conn.setRequestProperty("x-ms-client-request-id", opts.requestid);
@@ -277,16 +287,39 @@ class HttpTransport {
                     getCodesFromJSon(conn.getErrorStream(), resp);
                     return;
                 }
+            } else {
+                consumeInputStream(conn.getErrorStream());  // read(ignore) and close if the stream exists
             }
 
-            // read response body if applicable
-            if (op.returnsBody) {
+
+            if (op.returnsBody) {  // response stream will be handled by caller
                 resp.responseStream = conn.getInputStream();
+            } else {    // read and discard response stream so it is consumed and connection can be reused
+                consumeInputStream(conn.getInputStream());
             }
-        } catch (MalformedURLException ex) {
+        }  catch (IOException ex) {
             resp.ex = ex;
-        } catch (IOException ex) {
-            resp.ex = ex;
+            resp.successful = false;
+            if (conn != null)
+            {
+                try {
+                    consumeInputStream(conn.getInputStream());  // read(ignore) and close if the stream exists
+                    consumeInputStream(conn.getErrorStream());  // read(ignore) and close if the stream exists
+                } catch (IOException ex2) {
+                    // ignore, since we already have the root IOException - this part is just when cleaning up error stream
+                }
+            }
+        }
+    }
+
+    static void consumeInputStream(InputStream istr) throws IOException {
+        if (istr != null) {
+            try {
+                byte[] b = new byte[65536];
+                while (istr.read(b) >= 0) ;        // read and discard
+            } finally {
+                istr.close();
+            }
         }
     }
 

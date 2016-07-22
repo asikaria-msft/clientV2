@@ -16,7 +16,6 @@ import com.microsoft.azure.datalake.store.acl.AclStatus;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -139,11 +138,6 @@ public class Core {
         if (autoCreate) qp.add("appendMode", "autocreate");
 
         HttpTransport.makeCall(client, Operation.CONCURRENTAPPEND, path, qp, contents, offsetWithinContentsArray, length, opts, resp);
-        try {
-            resp.responseStream.close();
-        } catch (IOException ex) {
-            // Dont care about response from server.
-        }
     }
 
     /**
@@ -218,10 +212,15 @@ public class Core {
             JsonNode rootNode = mapper.readTree(resp.responseStream);
 
             returnValue = rootNode.path("boolean").asBoolean();
-
         } catch (IOException ex) {
             resp.successful = false;
             resp.message = "Unexpected error happened reading response stream or parsing JSon from delete()";
+        } finally {
+            try {
+                resp.responseStream.close();
+            } catch (IOException ex) {
+                //swallow since it is only the closing of the stream
+            }
         }
 
         return returnValue;
@@ -262,6 +261,12 @@ public class Core {
         } catch (IOException ex) {
             resp.successful = false;
             resp.message = "Unexpected error happened reading response stream or parsing JSon from rename()";
+        } finally {
+            try {
+                resp.responseStream.close();
+            } catch (IOException ex) {
+                //swallow since it is only the closing of the stream
+            }
         }
         return returnValue;
     }
@@ -307,6 +312,12 @@ public class Core {
         } catch (IOException ex) {
             resp.successful = false;
             resp.message = "Unexpected error happened reading response stream or parsing JSon from mkdirs()";
+        } finally {
+            try {
+                resp.responseStream.close();
+            } catch (IOException ex) {
+                //swallow since it is only the closing of the stream
+            }
         }
         return returnValue;
     }
@@ -339,6 +350,12 @@ public class Core {
             resp.successful = false;
             resp.message = "Unexpected error happened reading response stream or parsing JSon from getContentSummary()";
             return null;
+        } finally {
+            try {
+                resp.responseStream.close();
+            } catch (IOException ex) {
+                //swallow since it is only the closing of the stream
+            }
         }
     }
 
@@ -446,6 +463,12 @@ public class Core {
             } catch (IOException ex) {
                 resp.successful = false;
                 resp.message = "Unexpected error happened reading response stream or parsing JSon from getFileStatus()";
+            } finally {
+                try {
+                    resp.responseStream.close();
+                } catch (IOException ex) {
+                    //swallow since it is only the closing of the stream
+                }
             }
         }
         return null;
@@ -536,6 +559,12 @@ public class Core {
             } catch (IOException ex) {
                 resp.successful = false;
                 resp.message = "Unexpected error happened reading response stream or parsing JSon from listFiles()";
+            } finally {
+                try {
+                    resp.responseStream.close();
+                } catch (IOException ex) {
+                    //swallow since it is only the closing of the stream
+                }
             }
         }
         return null;
@@ -887,10 +916,7 @@ public class Core {
             return;
         }
 
-        QueryParams qp = new QueryParams();
-        qp.add("aclspec", AclEntry.aclListToString(aclSpec));
-
-        HttpTransport.makeCall(client, Operation.SETACL, path, qp, null, 0, 0, opts, resp);
+        setAcl(path, AclEntry.aclListToString(aclSpec), client, opts, resp);
     }
 
     /**
@@ -909,7 +935,7 @@ public class Core {
                                          RequestOptions opts,
                                          OperationResponse resp) {
 
-        HttpTransport.makeCall(client, Operation.SETACL, path, null, null, 0, 0, opts, resp);
+        HttpTransport.makeCall(client, Operation.GETACLSTATUS, path, null, null, 0, 0, opts, resp);
 
         if (resp.successful) {
             AclStatus status = new AclStatus();
@@ -933,6 +959,12 @@ public class Core {
                 resp.successful = false;
                 resp.message = "Unexpected error happened reading response stream or parsing JSon from getAclStatus";
                 return null;
+            } finally {
+                try {
+                    resp.responseStream.close();
+                } catch (IOException ex) {
+                    //swallow since it is only the closing of the stream
+                }
             }
         } else {
             return null;

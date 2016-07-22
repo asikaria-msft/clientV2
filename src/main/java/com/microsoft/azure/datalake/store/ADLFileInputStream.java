@@ -115,9 +115,10 @@ public class ADLFileInputStream extends InputStream {
                     totalBytesRead += bytesRead;
                 }
             } while (bytesRead >= 0 && totalBytesRead < length);
-            str.close();
         } catch (IOException ex) {
             throw new ADLException("Error reading data from response stream in positioned read() for file " + filename, ex);
+        } finally {
+            str.close();
         }
         return totalBytesRead;
     }
@@ -212,9 +213,10 @@ public class ADLFileInputStream extends InputStream {
                     totalBytesRead += bytesRead;
                 }
             } while (bytesRead >= 0 && limit < blocksize);
-            str.close();
         } catch (IOException ex) {
             throw new ADLException("Error reading data from response stream for file " + filename, ex);
+        } finally {
+            str.close();
         }
         return totalBytesRead;
     }
