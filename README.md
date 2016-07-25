@@ -1,14 +1,11 @@
-# Azure Datalake client for Java
+# Azure Datalake Store client for Java
 
-TODO
 
-1. Add Logging
-2. ACLs
-3. Finish utility methods
-4. Functional tests
-5. Perf tests
-6. Javadoc
-
+ - For an introduction to Azure Data Lake, see here:
+ - To sign up for Azure Data Lake, see here:
+ - For getting started introduction to the SDK, see here: 
+ - For the SDK Javadoc, see here:
+ 
 
 
 
