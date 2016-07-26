@@ -119,6 +119,9 @@ public class Core {
         if (leaseId != null && !leaseId.equals("")) {
             qp.add("leaseid", leaseId);
         }
+        if (offsetToAppendTo >= 0) {
+            qp.add("offset", Long.toString(offsetToAppendTo));
+        }
 
         HttpTransport.makeCall(client, Operation.APPEND, path, qp, contents, offsetWithinContentsArray, length, opts, resp);
     }

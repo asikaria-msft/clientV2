@@ -9,6 +9,7 @@ package com.microsoft.azure.datalake.store;
 import com.microsoft.azure.datalake.store.protocol.Core;
 import com.microsoft.azure.datalake.store.protocol.OperationResponse;
 import com.microsoft.azure.datalake.store.protocol.RequestOptions;
+import com.microsoft.azure.datalake.store.retrypolicies.ExponentialOnThrottlePolicy;
 import com.microsoft.azure.datalake.store.retrypolicies.NoRetryPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -122,19 +123,36 @@ public class ADLFileOutputStream extends OutputStream {
     @Override
     public void flush() throws IOException {
         if (streamClosed) throw new IOException("attempting to flush a closed stream;");
-        if (!created && isCreate) {   // actually, checking just !created would suffice; but leaving isCreate for readability
-            RequestOptions opts = new RequestOptions();
-            opts.retryPolicy = new NoRetryPolicy();
-            OperationResponse resp = new OperationResponse();
-            if (log.isTraceEnabled()) {
-                log.trace("create file with data size {} for client {} for file {}", cursor, client.getClientId(), filename);
+        if (isCreate) {
+            if (!created) {
+                RequestOptions opts = new RequestOptions();
+                opts.retryPolicy = overwrite ? new ExponentialOnThrottlePolicy() : new NoRetryPolicy();
+                OperationResponse resp = new OperationResponse();
+                if (log.isTraceEnabled()) {
+                    log.trace("create file with data size {} for client {} for file {}", cursor, client.getClientId(), filename);
+                }
+                Core.create(filename, overwrite, permission, buffer, 0, cursor, leaseId, client, opts, resp);
+                if (!resp.successful) {
+                    throw client.getExceptionFromResp(resp, "Error creating file " + filename);
+                }
+                created = true;
+                remoteCursor += cursor;
+                cursor = 0;
+            } else {
+                RequestOptions opts = new RequestOptions();
+                opts.retryPolicy = new ExponentialOnThrottlePolicy();
+                OperationResponse resp = new OperationResponse();
+                if (log.isTraceEnabled()) {
+                    log.trace("append to file with data size {} for client {} for file {}", cursor, client.getClientId(), filename);
+                }
+                Core.append(filename, remoteCursor, buffer, 0, cursor, leaseId, client, opts, resp);
+                if (!resp.successful) {
+                    throw client.getExceptionFromResp(resp, "Error appending to file " + filename);
+                }
+                remoteCursor += cursor;
+                cursor = 0;
             }
-            Core.create(filename, overwrite, permission, buffer, 0, cursor, leaseId, client, opts, resp);
-            if (!resp.successful) {
-                throw client.getExceptionFromResp(resp, "Error creating file " + filename);
-            }
-            created = true;
-        } else {
+        } else { // !isCreate - i.e., append stream
             RequestOptions opts = new RequestOptions();
             opts.retryPolicy = new NoRetryPolicy();
             OperationResponse resp = new OperationResponse();
@@ -145,8 +163,9 @@ public class ADLFileOutputStream extends OutputStream {
             if (!resp.successful) {
                 throw client.getExceptionFromResp(resp, "Error appending to file " + filename);
             }
+            remoteCursor += cursor;
+            cursor = 0;
         }
-        cursor = 0;
     }
 
     /**
