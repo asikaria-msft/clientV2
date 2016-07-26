@@ -126,20 +126,19 @@ public class ADLFileOutputStream extends OutputStream {
             if (log.isTraceEnabled()) {
                 log.trace("create file with data size {} for client {} for file {}", cursor, client.getClientId(), filename);
             }
-            Core.create(filename, overwrite, buffer, 0, cursor, leaseId, client, opts, resp);
+            Core.create(filename, overwrite, null, buffer, 0, cursor, leaseId, client, opts, resp);
             if (!resp.successful) {
                 throw client.getExceptionFromResp(resp, "Error creating file " + filename);
             }
             created = true;
         } else {
-            String appendLeaseId = (isCreate) ? leaseId : null;
             RequestOptions opts = new RequestOptions();
             opts.retryPolicy = new NoRetryPolicy();
             OperationResponse resp = new OperationResponse();
             if (log.isTraceEnabled()) {
                 log.trace("append to file with data size {} for client {} for file {}", cursor, client.getClientId(), filename);
             }
-            Core.append(filename, buffer, 0, cursor, appendLeaseId, client, opts, resp);
+            Core.append(filename, buffer, 0, cursor, leaseId, client, opts, resp);
             if (!resp.successful) {
                 throw client.getExceptionFromResp(resp, "Error appending to file " + filename);
             }

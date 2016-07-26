@@ -50,6 +50,7 @@ public class Core {
      *
      * @param path the full path of the file to create
      * @param overwrite whether to overwrite the file if it already exists
+     * @param octalPermission permissions for the file, as octal digits (For Example, {@code "755"}). Can be null.
      * @param contents byte array containing the contents to be written to the file. Can be {@code null}
      * @param offsetWithinContentsArray offset within the byte array passed in {@code contents}. Bytes starting
      *                                  at this offset will be written to server
@@ -61,6 +62,7 @@ public class Core {
      */
     public static void create(String path,
                               boolean overwrite,
+                              String octalPermission,
                               byte[] contents,
                               int offsetWithinContentsArray,
                               int length,
@@ -74,12 +76,22 @@ public class Core {
         if (leaseId != null && !leaseId.equals("")) {
             qp.add("leaseid", leaseId);
         }
+        if (octalPermission != null && !octalPermission.equals("")) {
+            if (isValidOctal(octalPermission)) {
+                qp.add("permission", octalPermission);
+            } else {
+                resp.successful = false;
+                resp.message = "Invalid directory permissions specified: " + octalPermission;
+                return;
+            }
+        }
+
         HttpTransport.makeCall(client, Operation.CREATE, path, qp, contents, offsetWithinContentsArray, length, opts, resp);
     }
 
     /**
      * append bytes to an existing file created with
-     * {@link #create(String, boolean, byte[], int, int, String, ADLStoreClient, RequestOptions, OperationResponse) create}.
+     * {@link #create(String, boolean, String, byte[], int, int, String, ADLStoreClient, RequestOptions, OperationResponse) create}.
      *
      *
      * @param path the full path of the file to append to. The file must already exist.
