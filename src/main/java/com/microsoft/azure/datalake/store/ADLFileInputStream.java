@@ -332,9 +332,6 @@ public class ADLFileInputStream extends InputStream {
             log.trace("ADLFileInputStream.close() for client {} for file {}", client.getClientId(), filename);
         }
         streamClosed = true;
-        if (log.isTraceEnabled()) {
-            log.trace("ADLInput Stream closed for client {} for file {}", client.getClientId(), filename);
-        }
     }
 
     /**
