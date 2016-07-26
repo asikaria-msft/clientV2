@@ -159,8 +159,30 @@ public class ADLStoreClient {
      */
     public ADLFileOutputStream createOutputStream(String path, IfExists mode) {
         boolean overwriteIfExists = (mode == IfExists.OVERWRITE);
-        return new ADLFileOutputStream(path, this, true, overwriteIfExists);
+        return new ADLFileOutputStream(path, this, true, overwriteIfExists, null);
     }
+
+    /**
+     * create a file. If {@code overwriteIfExists} is false and the file already exists,
+     * then an exceptionis thrown.
+     * The call returns an {@link ADLFileOutputStream} that can then be written to.
+     *
+     *
+     * @param path full pathname of file to create
+     * @param mode {@link IfExists} {@code enum} specifying whether to overwite or throw
+     *                             an exception if the file already exists
+     * @param octalPermission permissions for the file, as octal digits (For Example, {@code "755"})
+     * @return  {@link ADLFileOutputStream} to write to
+     */
+    public ADLFileOutputStream createOutputStream(String path, IfExists mode, String octalPermission) {
+        boolean overwriteIfExists = (mode == IfExists.OVERWRITE);
+        if (octalPermission != null && !octalPermission.equals("") && !Core.isValidOctal(octalPermission)) {
+                throw new IllegalArgumentException("Invalid directory permissions specified: " + octalPermission);
+        }
+        return new ADLFileOutputStream(path, this, true, overwriteIfExists, octalPermission);
+    }
+
+
 
     /**
      * Opens a file for read and returns an {@link ADLFileInputStream} to read the file
@@ -187,7 +209,7 @@ public class ADLStoreClient {
      *         will be appended to the file.
      */
     public ADLFileOutputStream getAppendStream(String path) {
-        return new ADLFileOutputStream(path, this, false, false);
+        return new ADLFileOutputStream(path, this, false, false, null);
     }
 
     /**

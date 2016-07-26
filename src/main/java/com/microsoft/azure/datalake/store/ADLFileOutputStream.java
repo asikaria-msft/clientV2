@@ -37,14 +37,17 @@ public class ADLFileOutputStream extends OutputStream {
     private byte[] buffer = new byte[blocksize]; //4MB byte-buffer
 
     private int cursor = 0;
+    private long remoteCursor = 0;
     private boolean created;
     private boolean streamClosed = false;
+    private String permission = null;
 
     // package-private constructor - use Factory Method in AzureDataLakeStoreClient
-    ADLFileOutputStream(String filename, ADLStoreClient client, boolean isCreate, boolean overwrite ) {
+    ADLFileOutputStream(String filename, ADLStoreClient client, boolean isCreate, boolean overwrite, String permission) {
         super();
         this.overwrite = overwrite;
         this.filename = filename;
+        this.permission = permission;
         this.client = client;
         this.isCreate = isCreate;
         created = !isCreate;          // for appends, created is already supposed to be true
@@ -126,7 +129,7 @@ public class ADLFileOutputStream extends OutputStream {
             if (log.isTraceEnabled()) {
                 log.trace("create file with data size {} for client {} for file {}", cursor, client.getClientId(), filename);
             }
-            Core.create(filename, overwrite, null, buffer, 0, cursor, leaseId, client, opts, resp);
+            Core.create(filename, overwrite, permission, buffer, 0, cursor, leaseId, client, opts, resp);
             if (!resp.successful) {
                 throw client.getExceptionFromResp(resp, "Error creating file " + filename);
             }
@@ -138,7 +141,7 @@ public class ADLFileOutputStream extends OutputStream {
             if (log.isTraceEnabled()) {
                 log.trace("append to file with data size {} for client {} for file {}", cursor, client.getClientId(), filename);
             }
-            Core.append(filename, buffer, 0, cursor, leaseId, client, opts, resp);
+            Core.append(filename, -1, buffer, 0, cursor, leaseId, client, opts, resp);
             if (!resp.successful) {
                 throw client.getExceptionFromResp(resp, "Error appending to file " + filename);
             }
