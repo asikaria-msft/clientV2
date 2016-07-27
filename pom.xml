@@ -11,12 +11,31 @@
   <url>https://azure.microsoft.com/en-us/services/data-lake-store</url>
   <description>Java SDK for Microsoft Azure Data Lake Store</description>
 
+  <organization>
+    <name>Microsoft Corporation</name>
+    <url>http://www.microsoft.com</url>
+  </organization>
+
   <developers>
     <developer>
       <id>Microsoft</id>
       <name>Microsoft Corporation</name>
+      <organization>Microsoft Corporation</organization>
+      <organizationUrl>http://www.microsoft.com</organizationUrl>
     </developer>
   </developers>
+
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>https://github.com/Azure/azure-data-lake-store-java/blob/master/LICENSE.txt</url>
+    </license>
+  </licenses>
+
+  <scm>
+    <connection>scm:git:https://github.com/Azure/azure-data-lake-store-java.git</connection>
+    <url>https://github.com/Azure/azure-data-lake-store-java</url>
+  </scm>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
