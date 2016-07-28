@@ -498,6 +498,44 @@ public class TestFileSdk {
     }
 
     @Test
+    public void concatWithSourceFileRepeated() throws IOException {
+        Assume.assumeTrue(testsEnabled);
+        String fn1 = directory + "/" + "Sdk.concatWithSourceFileRepeated-1.txt";
+        String fn2 = directory + "/" + "Sdk.concatWithSourceFileRepeated-2.txt";
+        String fnc = directory + "/" + "Sdk.concatWithSourceFileRepeated-c.txt";
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream(4096);
+
+        // write some text to file
+        byte [] contents = HelperUtils.getSampleText1();
+        OutputStream out = client.createOutputStream(fn1, IfExists.OVERWRITE);
+        out.write(contents);
+        bos.write(contents);
+        out.close();
+
+        // write text to another file
+        contents = HelperUtils.getSampleText2();
+        out = client.createOutputStream(fn2, IfExists.OVERWRITE);
+        out.write(contents);
+        bos.write(contents);
+        out.close();
+
+        bos.close();
+        contents = bos.toByteArray();
+
+        // concatenate files with fn1 repeated - should fail
+        List<String> flist = Arrays.asList(fn1, fn2, fn1);
+        try {
+            client.concatenateFiles(fnc, flist);
+            fail("Concat should fail if a file is used repeatedly in sources");
+        } catch (ADLException ex) {
+            // expected
+        }
+    }
+
+
+
+    @Test
     public void concatThreeFiles() throws IOException {
         Assume.assumeTrue(testsEnabled);
         String fn1 = directory + "/" + "Sdk.concatThreeFiles-1.txt";

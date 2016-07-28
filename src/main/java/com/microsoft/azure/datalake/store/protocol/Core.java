@@ -18,6 +18,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -401,11 +402,20 @@ public class Core {
         byte[] body = null;
         StringBuilder sb = new StringBuilder("sources=");
         boolean firstelem = true;
+        HashSet<String> pathSet = new HashSet<String>(4096);  // 4096: reasonably large-enough number for "most" cases
         for (String item : sources) {
             if (item.equals(path)) {
                 resp.successful = false;
                 resp.message = "One of the source files to concatenate is the destination file";
                 return;
+            }
+            // check that each source path occurs only once
+            if (pathSet.contains(item)) {
+                resp.successful = false;
+                resp.message = "concat() source list contains a file more than once: " + item;
+                return;
+            } else {
+                pathSet.add(item);
             }
             if (!firstelem) sb.append(',');
                        else firstelem = false;
