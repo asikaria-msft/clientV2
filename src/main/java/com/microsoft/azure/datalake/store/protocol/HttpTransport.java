@@ -212,11 +212,9 @@ class HttpTransport {
             urlString.append("/webhdfs/v1");
         }
 
-/*        try {
-            // URL encode, but keep the "/" characters
-            urlString.append(URLEncoder.encode(path, "UTF-8").replace("%2F", "/").replace("%2f", "/").replace("+", "%20"));
-        } catch (UnsupportedEncodingException ex) {}
-*/
+        String prefix = client.getFilePathPrefix();
+        if (prefix!=null) urlString.append(prefix);
+
         if (path.charAt(0) != '/') urlString.append('/');
         try {
             urlString.append((new URI(null, null, path, null)).toASCIIString());   // use URI to encode path

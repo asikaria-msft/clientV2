@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
@@ -46,6 +47,7 @@ public class ADLStoreClient {
     private final long clientId;
     private String proto = "https";
     private boolean enableRemoteExceptions = false;
+    private String pathPrefix = null;
 
     private static String userAgent =
             String.format("%s-%s/%s-%s/%s/%s-%s",
@@ -848,6 +850,34 @@ public class ADLStoreClient {
     public synchronized boolean remoteExceptionsEnabled() {
         return enableRemoteExceptions;
     }
+
+
+    /**
+     * Set a prefix that will be prepended to all file paths from this client. This allows the
+     * client to be scoped to a subset of the directory Azure Data Lake Store tree.
+     *
+     * @param prefix {@code String} containing the prefix to be prepended
+     * @throws URISyntaxException {@link URISyntaxException} is thrown if the path is not a valid path
+     */
+    public synchronized void setFilePathPrefix(String prefix) throws URISyntaxException {
+        if (prefix==null || prefix.equals("")) throw new IllegalArgumentException("prefix cannot be empty or null");
+
+        if (prefix.contains("//")) throw new URISyntaxException(prefix, "prefix cannot contain empty path element");
+        if (prefix.charAt(0) != '/') prefix = "/" + prefix;
+        if (prefix.charAt(prefix.length()-1) == '/') prefix = prefix.substring(0, prefix.length()-2);
+
+        pathPrefix = (new URI(null, null, prefix, null)).toASCIIString();
+    }
+
+    /**
+     * Gets the file path prefix used for this client.
+     *
+     * @return the path prefix (URL encoded)
+     */
+    public synchronized  String getFilePathPrefix() {
+        return pathPrefix;
+    }
+
 
     /**
      * creates an {@link ADLException} from {@link OperationResponse}.

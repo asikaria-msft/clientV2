@@ -19,6 +19,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URISyntaxException;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -856,5 +857,63 @@ public class TestFileSdk {
         assertTrue("spaceConsumed in content summary should match", contentSummary.spaceConsumed == totalLength);
     }
 
+    @Test
+    public void pathPrefix() throws IOException, URISyntaxException {
+        Assume.assumeTrue(testsEnabled);
+        String prefix = directory + "/" + "pathPrefix";
+        client.setFilePathPrefix(prefix);
 
+        // Do a series of operations on the prefix-enabled client and
+        // ensure they succeed
+
+        // create directory
+        String dirname = "/foo/bar";
+        client.createDirectory(dirname);
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream(4096);
+
+        // write some text to two files
+        String fn1 = dirname + "/" + "a.txt";
+        byte [] contents1 = HelperUtils.getSampleText1();
+        OutputStream out = client.createOutputStream(fn1, IfExists.OVERWRITE);
+        out.write(contents1);
+        bos.write(contents1);
+        out.close();
+
+        String fn2 = dirname + "/" + "b.txt";
+        byte [] contents2 = HelperUtils.getSampleText2();
+        out = client.createOutputStream(fn2, IfExists.OVERWRITE);
+        out.write(contents2);
+        bos.write(contents2);
+        out.close();
+
+        bos.close();
+        byte[] contents = bos.toByteArray();
+
+        // concatenate the files
+        String fn3 = dirname + "/" + "c.txt";
+        List<String> flist = Arrays.asList(fn1, fn2);
+        client.concatenateFiles(fn3, flist);
+
+        // rename the concatenated file
+        String fn4 = dirname + "/" + "d.txt";
+        client.rename(fn3, fn4);
+
+        // read text from file
+        InputStream in = client.getReadStream(fn4);
+        byte[] b1 = new byte[contents.length*2]; // double the size, to account for bloat due to possible bug in upload
+        int bytesRead;
+        int count = 0;
+        while ((bytesRead = in.read(b1, count, b1.length-count)) >=0 && count<=b1.length ) {
+            count += bytesRead;
+        }
+
+        // verify what was read is identical to what was written
+        assertTrue("file length should match what was written", contents.length == count);
+        byte[] b2 = Arrays.copyOfRange(b1, 0, count);
+        assertTrue("file contents should match", Arrays.equals(contents, b2));
+
+        // delete file
+        client.delete(fn4);
+    }
 }

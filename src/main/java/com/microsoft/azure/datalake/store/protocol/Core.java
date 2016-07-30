@@ -263,6 +263,20 @@ public class Core {
                                  ADLStoreClient client,
                                  RequestOptions opts,
                                  OperationResponse resp) {
+
+        if (destination == null || destination.equals(""))
+            throw new IllegalArgumentException("destination cannot be null or empty");
+
+        // prepend the prefix, if applicable, to the destination path
+        String prefix = client.getFilePathPrefix();
+        if (prefix!=null) {
+            if (destination.charAt(0) == '/') {
+                destination = prefix + destination;
+            } else {
+                destination = prefix + "/" + destination;
+            }
+        }
+
         QueryParams qp = new QueryParams();
         qp.add("destination", destination);
 
@@ -409,6 +423,7 @@ public class Core {
                 resp.message = "One of the source files to concatenate is the destination file";
                 return;
             }
+
             // check that each source path occurs only once
             if (pathSet.contains(item)) {
                 resp.successful = false;
@@ -417,6 +432,17 @@ public class Core {
             } else {
                 pathSet.add(item);
             }
+
+            // prepend Filesystem prefix if needed to each of the paths
+            String prefix = client.getFilePathPrefix();
+            if (prefix!=null) {
+                if (item.charAt(0) == '/') {
+                    item = prefix + item;
+                } else {
+                    item = prefix + "/" + item;
+                }
+            }
+
             if (!firstelem) sb.append(',');
                        else firstelem = false;
             sb.append(item);
