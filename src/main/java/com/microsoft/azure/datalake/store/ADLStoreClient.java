@@ -15,6 +15,7 @@ import com.microsoft.azure.datalake.store.protocol.Core;
 import com.microsoft.azure.datalake.store.protocol.OperationResponse;
 import com.microsoft.azure.datalake.store.protocol.RequestOptions;
 import com.microsoft.azure.datalake.store.retrypolicies.ExponentialOnThrottlePolicy;
+import com.microsoft.azure.datalake.store.retrypolicies.NoRetryPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +25,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
 
@@ -158,10 +160,10 @@ public class ADLStoreClient {
      * @param mode {@link IfExists} {@code enum} specifying whether to overwite or throw
      *                             an exception if the file already exists
      * @return  {@link ADLFileOutputStream} to write to
+     * @throws IOException {@link ADLException} is thrown if there is an error in creating the file
      */
-    public ADLFileOutputStream createOutputStream(String path, IfExists mode) {
-        boolean overwriteIfExists = (mode == IfExists.OVERWRITE);
-        return new ADLFileOutputStream(path, this, true, overwriteIfExists, null);
+    public ADLFileOutputStream createOutputStream(String path, IfExists mode) throws IOException {
+        return createOutputStream(path, mode, null);
     }
 
     /**
@@ -175,13 +177,27 @@ public class ADLStoreClient {
      *                             an exception if the file already exists
      * @param octalPermission permissions for the file, as octal digits (For Example, {@code "755"})
      * @return  {@link ADLFileOutputStream} to write to
+     * @throws IOException {@link ADLException} is thrown if there is an error in creating the file
      */
-    public ADLFileOutputStream createOutputStream(String path, IfExists mode, String octalPermission) {
-        boolean overwriteIfExists = (mode == IfExists.OVERWRITE);
+    public ADLFileOutputStream createOutputStream(String path, IfExists mode, String octalPermission) throws IOException {
         if (octalPermission != null && !octalPermission.equals("") && !Core.isValidOctal(octalPermission)) {
                 throw new IllegalArgumentException("Invalid directory permissions specified: " + octalPermission);
         }
-        return new ADLFileOutputStream(path, this, true, overwriteIfExists, octalPermission);
+        if (log.isTraceEnabled()) {
+            log.trace("create file for client {} for file {}", this.getClientId(), path);
+        }
+
+        String leaseId = UUID.randomUUID().toString();
+        boolean overwrite = (mode==IfExists.OVERWRITE);
+        RequestOptions opts = new RequestOptions();
+        opts.retryPolicy = overwrite ? new ExponentialOnThrottlePolicy() : new NoRetryPolicy();
+        OperationResponse resp = new OperationResponse();
+        Core.create(path, overwrite, octalPermission, null, 0, 0, leaseId, leaseId, this, opts, resp);
+        if (!resp.successful) {
+            throw this.getExceptionFromResp(resp, "Error creating file " + path);
+        }
+
+        return new ADLFileOutputStream(path, this, true, overwrite, octalPermission, leaseId);
     }
 
 
@@ -211,7 +227,7 @@ public class ADLStoreClient {
      *         will be appended to the file.
      */
     public ADLFileOutputStream getAppendStream(String path) {
-        return new ADLFileOutputStream(path, this, false, false, null);
+        return new ADLFileOutputStream(path, this, false, false, null, null);
     }
 
     /**

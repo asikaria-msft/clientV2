@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.UUID;
 
 
 /**
@@ -49,6 +50,7 @@ public class ADLFileInputStream extends InputStream {
 
     private int blocksize = 4 * 1024 * 1024;
     private byte[] buffer = new byte[blocksize]; //4MB byte-buffer
+    private String sessionId = UUID.randomUUID().toString();
 
     private long fCursor = 0;  // bCursor of buffer within file - offset of next byte to read
     private int bCursor = 0;   // bCursor of read within buffer - offset of next byte to be returned from buffer
@@ -99,7 +101,7 @@ public class ADLFileInputStream extends InputStream {
         RequestOptions opts = new RequestOptions();
         opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
-        InputStream str = Core.open(filename, position, length, client, opts, resp);
+        InputStream str = Core.open(filename, position, length, sessionId, client, opts, resp);
         if (resp.httpResponseCode == 403 || resp.httpResponseCode == 416) {
             resp.successful = true;
             return -1; //End-of-file. This should never happen for a positioned read - we have already validated above
@@ -195,7 +197,7 @@ public class ADLFileInputStream extends InputStream {
         RequestOptions opts = new RequestOptions();
         opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
-        InputStream str = Core.open(filename, fCursor, blocksize, client, opts, resp);
+        InputStream str = Core.open(filename, fCursor, blocksize, sessionId, client, opts, resp);
         if (resp.httpResponseCode == 403 || resp.httpResponseCode == 416) {
             resp.successful = true;
             return -1; //End-of-file

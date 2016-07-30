@@ -683,15 +683,10 @@ public class TestFileSdk {
 
         byte [] contents = HelperUtils.getSampleText1();
         OutputStream out = client.createOutputStream(filename, IfExists.OVERWRITE);
+        client.getDirectoryEntry(filename); // should not throw exception - file should exist on server now
         out.write(contents);
-        try {
-            d = client.getDirectoryEntry(filename);
-            fail("unflushed file should still not exist");
-        } catch (ADLException ex) {
-            assertTrue("Unflushed file should get 404", ex.httpResponseCode == 404);
-        }
-
         out.close();
+
         d = client.getDirectoryEntry(filename);
         assertTrue("File fullname should match", d.fullName.equals(filename));
         assertTrue("File name should match", d.name.equals(filename.substring(filename.lastIndexOf('/')+1)));

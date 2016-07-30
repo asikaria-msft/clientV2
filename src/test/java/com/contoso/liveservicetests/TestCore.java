@@ -145,7 +145,7 @@ public class TestCore {
     private void putFileContents(String filename, byte[] b, boolean overwrite) throws IOException {
         RequestOptions opts = new RequestOptions();
         OperationResponse resp = new OperationResponse();
-        Core.create(filename, overwrite, null, b, 0, b.length, null, client, opts, resp);
+        Core.create(filename, overwrite, null, b, 0, b.length, null, null, client, opts, resp);
         if (!resp.successful) throw client.getExceptionFromResp(resp, "Error creating file " + filename);
     }
 
@@ -157,7 +157,7 @@ public class TestCore {
         while (!eof && count<b.length) {
             RequestOptions opts = new RequestOptions();
             OperationResponse resp = new OperationResponse();
-            InputStream in = Core.open(filename, count, 0, client, opts, resp);
+            InputStream in = Core.open(filename, count, 0, null, client, opts, resp);
             System.out.format("Open completed. Current count=%d%n", count);
             if (!resp.successful) throw client.getExceptionFromResp(resp, "Error reading from file " + filename);
             if (resp.httpResponseCode == 403 || resp.httpResponseCode == 416) {

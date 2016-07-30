@@ -32,26 +32,31 @@ public class ADLFileOutputStream extends OutputStream {
     private final ADLStoreClient client;
     private final boolean isCreate;
     private final boolean overwrite;
-    private final String leaseId = UUID.randomUUID().toString();
+    private final String leaseId;
 
     private int blocksize = 4 * 1024 *1024;
     private byte[] buffer = new byte[blocksize]; //4MB byte-buffer
 
     private int cursor = 0;
     private long remoteCursor = 0;
-    private boolean created;
     private boolean streamClosed = false;
     private String permission = null;
 
     // package-private constructor - use Factory Method in AzureDataLakeStoreClient
-    ADLFileOutputStream(String filename, ADLStoreClient client, boolean isCreate, boolean overwrite, String permission) {
+    ADLFileOutputStream(String filename,
+                        ADLStoreClient client,
+                        boolean isCreate,
+                        boolean overwrite,
+                        String permission,
+                        String leaseId) {
         super();
         this.overwrite = overwrite;
         this.filename = filename;
         this.permission = permission;
         this.client = client;
         this.isCreate = isCreate;
-        created = !isCreate;          // for appends, created is already supposed to be true
+        if (leaseId == null) leaseId = UUID.randomUUID().toString();
+        this.leaseId = leaseId;
         if (log.isTraceEnabled()) {
             log.trace("ADLFIleOutputStream created for client {} for file {}, create={}", client.getClientId(), filename, isCreate);
         }
@@ -124,34 +129,18 @@ public class ADLFileOutputStream extends OutputStream {
     public void flush() throws IOException {
         if (streamClosed) throw new IOException("attempting to flush a closed stream;");
         if (isCreate) {
-            if (!created) {
-                RequestOptions opts = new RequestOptions();
-                opts.retryPolicy = overwrite ? new ExponentialOnThrottlePolicy() : new NoRetryPolicy();
-                OperationResponse resp = new OperationResponse();
-                if (log.isTraceEnabled()) {
-                    log.trace("create file with data size {} for client {} for file {}", cursor, client.getClientId(), filename);
-                }
-                Core.create(filename, overwrite, permission, buffer, 0, cursor, leaseId, client, opts, resp);
-                if (!resp.successful) {
-                    throw client.getExceptionFromResp(resp, "Error creating file " + filename);
-                }
-                created = true;
-                remoteCursor += cursor;
-                cursor = 0;
-            } else {
-                RequestOptions opts = new RequestOptions();
-                opts.retryPolicy = new ExponentialOnThrottlePolicy();
-                OperationResponse resp = new OperationResponse();
-                if (log.isTraceEnabled()) {
-                    log.trace("append to file with data size {} for client {} for file {}", cursor, client.getClientId(), filename);
-                }
-                Core.append(filename, remoteCursor, buffer, 0, cursor, leaseId, client, opts, resp);
-                if (!resp.successful) {
-                    throw client.getExceptionFromResp(resp, "Error appending to file " + filename);
-                }
-                remoteCursor += cursor;
-                cursor = 0;
+            RequestOptions opts = new RequestOptions();
+            opts.retryPolicy = new ExponentialOnThrottlePolicy();
+            OperationResponse resp = new OperationResponse();
+            if (log.isTraceEnabled()) {
+                log.trace("append to file with data size {} for client {} for file {}", cursor, client.getClientId(), filename);
             }
+            Core.append(filename, remoteCursor, buffer, 0, cursor, leaseId, leaseId, client, opts, resp);
+            if (!resp.successful) {
+                throw client.getExceptionFromResp(resp, "Error appending to file " + filename);
+            }
+            remoteCursor += cursor;
+            cursor = 0;
         } else { // !isCreate - i.e., append stream
             RequestOptions opts = new RequestOptions();
             opts.retryPolicy = new NoRetryPolicy();
@@ -159,11 +148,10 @@ public class ADLFileOutputStream extends OutputStream {
             if (log.isTraceEnabled()) {
                 log.trace("append to file with data size {} for client {} for file {}", cursor, client.getClientId(), filename);
             }
-            Core.append(filename, -1, buffer, 0, cursor, leaseId, client, opts, resp);
+            Core.append(filename, -1, buffer, 0, cursor, leaseId, leaseId, client, opts, resp);
             if (!resp.successful) {
                 throw client.getExceptionFromResp(resp, "Error appending to file " + filename);
             }
-            remoteCursor += cursor;
             cursor = 0;
         }
     }
