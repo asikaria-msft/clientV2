@@ -6,7 +6,7 @@
 
 package com.microsoft.azure.datalake.store.oauth2;
 
-import java.util.Calendar;
+import java.util.Date;
 
 
 /**
@@ -14,5 +14,5 @@ import java.util.Calendar;
  */
 public class AzureADToken {
     public String accessToken;
-    public Calendar expiry;
+    public Date expiry;
 }

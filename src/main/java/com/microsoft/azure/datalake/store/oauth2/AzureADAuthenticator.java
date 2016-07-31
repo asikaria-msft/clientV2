@@ -10,7 +10,7 @@ import com.microsoft.azure.datalake.store.protocol.QueryParams;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Calendar;
+import java.util.Date;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -126,10 +126,10 @@ public class AzureADAuthenticator {
             JsonNode rootNode = mapper.readTree(conn.getInputStream());
 
             token.accessToken = rootNode.path("access_token").asText();
-            int expiryPeriod = rootNode.path("expires_in").asInt(0);
-            Calendar cal = Calendar.getInstance();
-            cal.add(Calendar.SECOND, expiryPeriod);
-            token.expiry = cal;
+            int expiryPeriod = rootNode.path("expires_in").asInt(0);     // in seconds
+            long expiry = System.currentTimeMillis();
+            expiry = expiry + expiryPeriod * 1000; // convert expiryPeriod to milliseconds and add
+            token.expiry = new Date(expiry);
         } else {
             throw new IOException("Failed to acquire token from AzureAD. Http response: " + httpResponseCode + " " + conn.getResponseMessage());
         }

@@ -7,7 +7,7 @@
 package com.microsoft.azure.datalake.store.oauth2;
 
 import java.io.IOException;
-import java.util.Calendar;
+import java.util.Date;
 
 /**
  * Returns an Azure Active Directory token when requested. The provider can cache the token if it has already
@@ -55,12 +55,12 @@ public abstract class AccessTokenProvider {
      */
     private boolean isTokenAboutToExpire() {
         if (token==null) return true;   // no token should have same response as expired token
-        if (token.expiry == null) return true; // if dont know expiry then assume expired (should not happen with a
+        if (token.expiry == null) return true; // if don't know expiry then assume expired (should not happen with a
                                                // correctly implemented refreshToken)
         boolean expiring = false;
-        Calendar approximatelyNow = Calendar.getInstance(); // get current time
-        approximatelyNow.add(Calendar.MINUTE, 5);  // allow 5 minutes for clock skew
-        if (token.expiry.before(approximatelyNow)) expiring = true;
+        long approximatelyNow = System.currentTimeMillis() + FIVE_MINUTES;   // allow 5 minutes for clock skew
+        if (token.expiry.getTime() < approximatelyNow) expiring = true;
         return expiring;
     }
+    private static final long FIVE_MINUTES = 300 * 1000; // 5 minutes in milliseconds
 }
