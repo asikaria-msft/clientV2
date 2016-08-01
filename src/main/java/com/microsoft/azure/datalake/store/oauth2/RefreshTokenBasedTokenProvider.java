@@ -6,12 +6,17 @@
 
 package com.microsoft.azure.datalake.store.oauth2;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 
 /**
  * Provides tokens based on refresh token
  */
 public class RefreshTokenBasedTokenProvider extends AccessTokenProvider {
+
+    private static final Logger log = LoggerFactory.getLogger("com.microsoft.azure.datalake.store.oauth2.RefreshTokenBasedTokenProvider");
     private final String clientId, refreshToken;
 
     /**
@@ -27,6 +32,7 @@ public class RefreshTokenBasedTokenProvider extends AccessTokenProvider {
 
     @Override
     protected AzureADToken refreshToken() throws IOException {
+        log.debug("refreshing refresh-token based token");
         return AzureADAuthenticator.getTokenUsingRefreshToken(clientId, refreshToken);
     }
 }

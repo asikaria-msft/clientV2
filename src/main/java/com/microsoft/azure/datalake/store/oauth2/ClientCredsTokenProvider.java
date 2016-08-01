@@ -6,12 +6,17 @@
 
 package com.microsoft.azure.datalake.store.oauth2;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 
 /**
  * Provides tokens based on client credentials
  */
 public class ClientCredsTokenProvider extends AccessTokenProvider {
+
+    private static final Logger log = LoggerFactory.getLogger("com.microsoft.azure.datalake.store.oauth2.ClientCredsTokenProvider");
     private final String authEndpoint, clientId, clientSecret;
 
     /**
@@ -30,6 +35,7 @@ public class ClientCredsTokenProvider extends AccessTokenProvider {
 
     @Override
     protected AzureADToken refreshToken() throws IOException {
+        log.debug("refreshing client-credential based token");
         return AzureADAuthenticator.getTokenUsingClientCreds(authEndpoint, clientId, clientSecret);
     }
 }
