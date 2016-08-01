@@ -6,6 +6,9 @@
 
 package com.microsoft.azure.datalake.store.oauth2;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.Date;
 
@@ -19,6 +22,7 @@ import java.util.Date;
 public abstract class AccessTokenProvider {
 
     protected AzureADToken token;
+    private static final Logger log = LoggerFactory.getLogger("com.microsoft.azure.datalake.store.oauth2.AccessTokenProvider");
 
     /**
      * returns the {@link AzureADToken} cached (or retrieved) by this instance.
@@ -28,6 +32,7 @@ public abstract class AccessTokenProvider {
      */
     public synchronized AzureADToken getToken() throws IOException {
         if (isTokenAboutToExpire()) {
+            log.debug("AAD Token is missing or expired: Calling refresh-token from abstract base class");
             token = refreshToken();
         }
         return token;
