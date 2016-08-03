@@ -163,7 +163,7 @@ public class ADLStoreClient {
      * @throws IOException {@link ADLException} is thrown if there is an error in creating the file
      */
     public ADLFileOutputStream createOutputStream(String path, IfExists mode) throws IOException {
-        return createOutputStream(path, mode, null);
+        return createOutputStream(path, mode, null, true);
     }
 
     /**
@@ -176,10 +176,11 @@ public class ADLStoreClient {
      * @param mode {@link IfExists} {@code enum} specifying whether to overwite or throw
      *                             an exception if the file already exists
      * @param octalPermission permissions for the file, as octal digits (For Example, {@code "755"})
+     * @param createParent if true, then parent directories of the file are created if they are missing.
      * @return  {@link ADLFileOutputStream} to write to
      * @throws IOException {@link ADLException} is thrown if there is an error in creating the file
      */
-    public ADLFileOutputStream createOutputStream(String path, IfExists mode, String octalPermission) throws IOException {
+    public ADLFileOutputStream createOutputStream(String path, IfExists mode, String octalPermission, boolean createParent) throws IOException {
         if (octalPermission != null && !octalPermission.equals("") && !Core.isValidOctal(octalPermission)) {
                 throw new IllegalArgumentException("Invalid directory permissions specified: " + octalPermission);
         }
@@ -192,12 +193,12 @@ public class ADLStoreClient {
         RequestOptions opts = new RequestOptions();
         opts.retryPolicy = overwrite ? new ExponentialOnThrottlePolicy() : new NoRetryPolicy();
         OperationResponse resp = new OperationResponse();
-        Core.create(path, overwrite, octalPermission, null, 0, 0, leaseId, leaseId, this, opts, resp);
+        Core.create(path, overwrite, octalPermission, null, 0, 0, leaseId, leaseId, createParent, this, opts, resp);
         if (!resp.successful) {
             throw this.getExceptionFromResp(resp, "Error creating file " + path);
         }
 
-        return new ADLFileOutputStream(path, this, true, overwrite, octalPermission, leaseId);
+        return new ADLFileOutputStream(path, this, true, octalPermission, createParent, leaseId);
     }
 
 
@@ -227,7 +228,7 @@ public class ADLStoreClient {
      *         will be appended to the file.
      */
     public ADLFileOutputStream getAppendStream(String path) {
-        return new ADLFileOutputStream(path, this, false, false, null, null);
+        return new ADLFileOutputStream(path, this, false, null, false, null);
     }
 
     /**

@@ -145,7 +145,7 @@ public class TestCore {
     private void putFileContents(String filename, byte[] b, boolean overwrite) throws IOException {
         RequestOptions opts = new RequestOptions();
         OperationResponse resp = new OperationResponse();
-        Core.create(filename, overwrite, null, b, 0, b.length, null, null, client, opts, resp);
+        Core.create(filename, overwrite, null, b, 0, b.length, null, null, true, client, opts, resp);
         if (!resp.successful) throw client.getExceptionFromResp(resp, "Error creating file " + filename);
     }
 

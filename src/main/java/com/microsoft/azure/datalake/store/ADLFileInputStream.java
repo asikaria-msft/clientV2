@@ -52,8 +52,8 @@ public class ADLFileInputStream extends InputStream {
     private byte[] buffer = new byte[blocksize]; //4MB byte-buffer
     private String sessionId = UUID.randomUUID().toString();
 
-    private long fCursor = 0;  // bCursor of buffer within file - offset of next byte to read
-    private int bCursor = 0;   // bCursor of read within buffer - offset of next byte to be returned from buffer
+    private long fCursor = 0;  // cursor of buffer within file - offset of next byte to read from remote server
+    private int bCursor = 0;   // cursor of read within buffer - offset of next byte to be returned from buffer
     private int limit = 0;     // offset of next byte to be read into buffer from service (i.e., upper marker+1
                                //                                                      of valid bytes in buffer)
     private boolean streamClosed = false;
@@ -101,7 +101,7 @@ public class ADLFileInputStream extends InputStream {
         RequestOptions opts = new RequestOptions();
         opts.retryPolicy = new ExponentialOnThrottlePolicy();
         OperationResponse resp = new OperationResponse();
-        InputStream str = Core.open(filename, position, length, sessionId, client, opts, resp);
+        InputStream inStream = Core.open(filename, position, length, sessionId, client, opts, resp);
         if (resp.httpResponseCode == 403 || resp.httpResponseCode == 416) {
             resp.successful = true;
             return -1; //End-of-file. This should never happen for a positioned read - we have already validated above
@@ -112,7 +112,7 @@ public class ADLFileInputStream extends InputStream {
         int totalBytesRead = 0;
         try {
             do {
-                bytesRead = str.read(b, offset + totalBytesRead, length - totalBytesRead);
+                bytesRead = inStream.read(b, offset + totalBytesRead, length - totalBytesRead);
                 if (bytesRead > 0) { // if not EOF of the Core.open's stream
                     totalBytesRead += bytesRead;
                 }
@@ -120,7 +120,7 @@ public class ADLFileInputStream extends InputStream {
         } catch (IOException ex) {
             throw new ADLException("Error reading data from response stream in positioned read() for file " + filename, ex);
         } finally {
-            str.close();
+            inStream.close();
         }
         return totalBytesRead;
     }

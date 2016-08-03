@@ -37,7 +37,7 @@ public class ADLException extends IOException {
     public int numRetries;
 
     /**
-     * the latency of the call. If retries were made, then thic contains the latency of the
+     * the latency of the call. If retries were made, then this contains the latency of the
      * last retry.
      */
     public long lastCallLatency = 0;
