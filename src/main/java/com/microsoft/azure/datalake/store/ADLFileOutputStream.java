@@ -32,7 +32,6 @@ public class ADLFileOutputStream extends OutputStream {
     private final ADLStoreClient client;
     private final boolean isCreate;
     private final String leaseId;
-    private final boolean createParent;
 
     private int blocksize = 4 * 1024 *1024;
     private byte[] buffer = new byte[blocksize]; //4MB byte-buffer
@@ -40,21 +39,16 @@ public class ADLFileOutputStream extends OutputStream {
     private int cursor = 0;
     private long remoteCursor = 0;
     private boolean streamClosed = false;
-    private String permission = null;
 
     // package-private constructor - use Factory Method in AzureDataLakeStoreClient
     ADLFileOutputStream(String filename,
                         ADLStoreClient client,
                         boolean isCreate,
-                        String permission,
-                        boolean createParent,
                         String leaseId) {
         super();
         this.filename = filename;
-        this.permission = permission;
         this.client = client;
         this.isCreate = isCreate;
-        this.createParent = createParent;
         if (leaseId == null) leaseId = UUID.randomUUID().toString();
         this.leaseId = leaseId;
         if (log.isTraceEnabled()) {

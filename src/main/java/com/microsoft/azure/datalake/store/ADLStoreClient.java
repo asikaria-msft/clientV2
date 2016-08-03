@@ -198,7 +198,7 @@ public class ADLStoreClient {
             throw this.getExceptionFromResp(resp, "Error creating file " + path);
         }
 
-        return new ADLFileOutputStream(path, this, true, octalPermission, createParent, leaseId);
+        return new ADLFileOutputStream(path, this, true, leaseId);
     }
 
 
@@ -228,7 +228,7 @@ public class ADLStoreClient {
      *         will be appended to the file.
      */
     public ADLFileOutputStream getAppendStream(String path) {
-        return new ADLFileOutputStream(path, this, false, null, false, null);
+        return new ADLFileOutputStream(path, this, false, null);
     }
 
     /**
