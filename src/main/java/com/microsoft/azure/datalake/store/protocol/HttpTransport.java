@@ -74,6 +74,10 @@ class HttpTransport {
             clientRequestId = opts.requestid;
         }
 
+        if (queryParams == null) queryParams = new QueryParams();
+        queryParams.setOp(op);
+        queryParams.setApiVersion(API_VERSION);
+
         int retryCount = 0;
         do {
             opts.requestid = clientRequestId + "." + Integer.toString(retryCount);
@@ -87,13 +91,14 @@ class HttpTransport {
                 LatencyTracker.addLatency(opts.requestid, retryCount, resp.lastCallLatency, op.name,
                         length + resp.responseContentLength, client.getClientId());
                 if (log.isDebugEnabled()) {
-                    String logline = "HTTPRequest,Succeeded," +
-                                     opts.requestid + "," +
-                                     Long.toString(resp.lastCallLatency) + ",," +
-                                     op.name + "," +
-                                     Long.toString(resp.responseContentLength) + "," +
-                                     resp.requestId + "," +
-                                     path;
+                    String logline = "HTTPRequest,Succeeded,cReqId:" +
+                            opts.requestid + ",lat:" +
+                            Long.toString(resp.lastCallLatency) + ",err:" +
+                            "" + ",len:" +    // no error
+                            Long.toString(length + resp.responseContentLength) + ",sReqId:" +
+                            resp.requestId + ",path:" +
+                            path + ",qp:" +
+                            queryParams.serialize();
                     log.debug(logline);
                 }
                 return;
@@ -108,14 +113,14 @@ class HttpTransport {
                 LatencyTracker.addError(opts.requestid, retryCount, resp.lastCallLatency, error, op.name,
                         length, client.getClientId());
                 if (log.isDebugEnabled()) {
-                    String logline = "HTTPRequest,Failed," +
-                            opts.requestid + "," +
-                            Long.toString(resp.lastCallLatency) + "," +
-                            error + "," +
-                            op.name + "," +
-                            Long.toString(resp.responseContentLength) + "," +
-                            resp.requestId + "," +
-                            path;
+                    String logline = "HTTPRequest,Failed,cReqId:" +
+                            opts.requestid + ",lat:" +
+                            Long.toString(resp.lastCallLatency) + ",err:" +
+                            error + ",len:" +
+                            Long.toString(length + resp.responseContentLength) + ",sReqId:" +
+                            resp.requestId + ",path:" +
+                            path + ",qp:" +
+                            queryParams.serialize();
                     log.debug(logline);
                 }
                 retryCount++;
@@ -199,7 +204,7 @@ class HttpTransport {
             }
         }
 
-        if (queryParams == null) queryParams = new QueryParams();
+
 
         // Build URL
         StringBuilder urlString = new StringBuilder();
@@ -224,9 +229,6 @@ class HttpTransport {
             return;
         }
         urlString.append('?');
-
-        queryParams.setOp(op);
-        queryParams.setApiVersion(API_VERSION);
         urlString.append(queryParams.serialize());
 
         URL url;
