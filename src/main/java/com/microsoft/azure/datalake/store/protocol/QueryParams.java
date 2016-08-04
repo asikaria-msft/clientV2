@@ -20,42 +20,50 @@ public class QueryParams {
     Operation op = null;
     String apiVersion = null;
     String separator = "";
+    String serializedString = null;
 
     public void add(String name, String value) {
         params.put(name, value);
+        serializedString = null;
     }
 
     public void setOp(Operation op) {
         this.op = op;
+        serializedString = null;
     }
 
-    public void setApiVersion(String apiVersion) { this.apiVersion = apiVersion; }
+    public void setApiVersion(String apiVersion) { this.apiVersion = apiVersion; serializedString = null; }
 
     public String serialize()  {
-        StringBuilder sb = new StringBuilder();
+        if (serializedString == null) {
+            StringBuilder sb = new StringBuilder();
 
-        if (op != null) {
-            sb.append(separator);
-            sb.append("op="); sb.append(op.name);
-            separator = "&";
-        }
-
-        for (String name : params.keySet()) {
-            try {
+            if (op != null) {
                 sb.append(separator);
-                sb.append(URLEncoder.encode(name, "UTF-8"));
-                sb.append('=');
-                sb.append(URLEncoder.encode(params.get(name), "UTF-8"));
+                sb.append("op=");
+                sb.append(op.name);
                 separator = "&";
-            } catch (UnsupportedEncodingException ex) { }
-        }
+            }
 
-        if (apiVersion != null) {
-            sb.append(separator);
-            sb.append("api-version="); sb.append(apiVersion);
-            separator = "&";
-        }
+            for (String name : params.keySet()) {
+                try {
+                    sb.append(separator);
+                    sb.append(URLEncoder.encode(name, "UTF-8"));
+                    sb.append('=');
+                    sb.append(URLEncoder.encode(params.get(name), "UTF-8"));
+                    separator = "&";
+                } catch (UnsupportedEncodingException ex) {
+                }
+            }
 
-        return sb.toString();
+            if (apiVersion != null) {
+                sb.append(separator);
+                sb.append("api-version=");
+                sb.append(apiVersion);
+                separator = "&";
+            }
+            serializedString = sb.toString();
+        }
+        return serializedString;
     }
 }
