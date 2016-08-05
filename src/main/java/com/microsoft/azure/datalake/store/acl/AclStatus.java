@@ -34,4 +34,10 @@ public class AclStatus {
      * Unix permissions for the file/directory in Octal form
      */
     public String octalPermissions;
+
+    /**
+     * Sticky bit (only meaningful for a directory)
+     */
+    public boolean stickyBit;
+
 }

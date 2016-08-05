@@ -1027,6 +1027,7 @@ public class Core {
                 status.group = aclStatusNode.path("group").asText();
                 status.owner = aclStatusNode.path("owner").asText();
                 status.octalPermissions = aclStatusNode.path("permission").asText();
+                status.stickyBit = aclStatusNode.path("stickyBit").asBoolean(false);
                 return status;
             } catch (IOException ex) {
                 resp.successful = false;
